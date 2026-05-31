@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net472;netstandard2.0;net8.0</TargetFrameworks>
+    <Description>ZPL parsing/analysis for BinaryKits.Zpl — the renderer-agnostic (Skia-free) core: parser, command analyzers, virtual printer, models, symbology encoders and helpers.</Description>
+    <Company>Binary Kits Pte. Ltd.</Company>
+    <Version>1.3.1</Version>
+    <Authors>Binary Kits Pte. Ltd.</Authors>
+    <PackageTags>Zebra ZPL ZPL2 ZPLParser ZPLAnalyzer ZPLVirtualPrinter</PackageTags>
+    <PackageProjectUrl>https://github.com/BinaryKits/BinaryKits.Zpl</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/BinaryKits/BinaryKits.Zpl</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <AssemblyName>BinaryKits.Zpl.Analyzer</AssemblyName>
+    <RootNamespace>BinaryKits.Zpl.Viewer</RootNamespace>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BinaryKits.Zpl.Label\BinaryKits.Zpl.Label.csproj" />
+  </ItemGroup>
+
+  <!-- The Skia rendering layer (and its tests) keep using the internal helpers that moved here. -->
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>BinaryKits.Zpl.Viewer</_Parameter1>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>BinaryKits.Zpl.Viewer.UnitTest</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+</Project>
