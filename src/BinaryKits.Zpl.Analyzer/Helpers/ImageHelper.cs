@@ -1,8 +1,8 @@
-﻿using BinaryKits.Zpl.Label.Helpers;
+using BinaryKits.Zpl.Label.Helpers;
 
 using System.Text.RegularExpressions;
 
-namespace BinaryKits.Zpl.Viewer.Helpers
+namespace BinaryKits.Zpl.Analyzer.Helpers
 {
     internal static class ImageHelper
     {

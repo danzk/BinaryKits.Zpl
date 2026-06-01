@@ -1,4 +1,4 @@
-﻿namespace BinaryKits.Zpl.Viewer.Helpers
+namespace BinaryKits.Zpl.Analyzer.Helpers
 {
     internal static class UnitsHelper
     {

@@ -1,6 +1,6 @@
-﻿using BinaryKits.Zpl.Label;
+using BinaryKits.Zpl.Label;
 
-namespace BinaryKits.Zpl.Viewer.Models
+namespace BinaryKits.Zpl.Analyzer.Models
 {
     internal class UpcEBarcodeFieldData : FieldDataBase
     {

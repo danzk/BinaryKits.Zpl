@@ -11,7 +11,7 @@
     <RepositoryUrl>https://github.com/BinaryKits/BinaryKits.Zpl</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <AssemblyName>BinaryKits.Zpl.Analyzer</AssemblyName>
-    <RootNamespace>BinaryKits.Zpl.Viewer</RootNamespace>
+    <RootNamespace>BinaryKits.Zpl.Analyzer</RootNamespace>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 

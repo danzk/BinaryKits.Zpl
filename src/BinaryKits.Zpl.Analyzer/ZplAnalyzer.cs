@@ -1,6 +1,6 @@
-﻿using BinaryKits.Zpl.Label.Elements;
-using BinaryKits.Zpl.Viewer.CommandAnalyzers;
-using BinaryKits.Zpl.Viewer.Models;
+using BinaryKits.Zpl.Label.Elements;
+using BinaryKits.Zpl.Analyzer.CommandAnalyzers;
+using BinaryKits.Zpl.Analyzer.Models;
 
 using System;
 using System.Collections.Generic;
@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace BinaryKits.Zpl.Viewer
+namespace BinaryKits.Zpl.Analyzer
 {
     public class ZplAnalyzer : IZplAnalyzer
     {

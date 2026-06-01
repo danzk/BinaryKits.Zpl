@@ -1,10 +1,10 @@
-﻿using BinaryKits.Zpl.Label.Elements;
+using BinaryKits.Zpl.Label.Elements;
 using BinaryKits.Zpl.Label.ImageConverters;
-using BinaryKits.Zpl.Viewer.Helpers;
+using BinaryKits.Zpl.Analyzer.Helpers;
 
 using System.Text.RegularExpressions;
 
-namespace BinaryKits.Zpl.Viewer.CommandAnalyzers
+namespace BinaryKits.Zpl.Analyzer.CommandAnalyzers
 {
     public class DownloadGraphicsZplCommandAnalyzer : ZplCommandAnalyzerBase
     {

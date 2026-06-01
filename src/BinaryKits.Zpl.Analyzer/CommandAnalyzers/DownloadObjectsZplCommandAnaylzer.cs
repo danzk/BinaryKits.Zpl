@@ -1,7 +1,7 @@
-﻿using BinaryKits.Zpl.Label.Elements;
+using BinaryKits.Zpl.Label.Elements;
 using BinaryKits.Zpl.Label.Helpers;
 
-namespace BinaryKits.Zpl.Viewer.CommandAnalyzers
+namespace BinaryKits.Zpl.Analyzer.CommandAnalyzers
 {
     public class DownloadObjectsZplCommandAnaylzer : ZplCommandAnalyzerBase
     {

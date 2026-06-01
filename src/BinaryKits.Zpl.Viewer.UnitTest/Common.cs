@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using BinaryKits.Zpl.Analyzer;
 using BinaryKits.Zpl.Viewer.ElementDrawers;
 
 namespace BinaryKits.Zpl.Viewer.UnitTest

@@ -1,7 +1,8 @@
-﻿using BinaryKits.Zpl.Label;
+using BinaryKits.Zpl.Analyzer;
+using BinaryKits.Zpl.Analyzer.Helpers;
+using BinaryKits.Zpl.Label;
 using BinaryKits.Zpl.Label.Elements;
 using BinaryKits.Zpl.Viewer.ElementDrawers;
-using BinaryKits.Zpl.Viewer.Helpers;
 
 using SkiaSharp;
 

@@ -1,6 +1,6 @@
 using BinaryKits.Zpl.Label;
 using BinaryKits.Zpl.Label.Elements;
-using BinaryKits.Zpl.Viewer.Helpers;
+using BinaryKits.Zpl.Analyzer.Helpers;
 
 using SkiaSharp;
 using SkiaSharp.HarfBuzz;

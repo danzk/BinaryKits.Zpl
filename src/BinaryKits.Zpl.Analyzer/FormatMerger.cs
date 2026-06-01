@@ -1,12 +1,12 @@
-﻿using BinaryKits.Zpl.Label.Elements;
-using BinaryKits.Zpl.Viewer.Models;
+using BinaryKits.Zpl.Label.Elements;
+using BinaryKits.Zpl.Analyzer.Models;
 
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace BinaryKits.Zpl.Viewer
+namespace BinaryKits.Zpl.Analyzer
 {
     /// <summary>
     /// Helper class responsible of merging several LabelInfo based on format data (templating).

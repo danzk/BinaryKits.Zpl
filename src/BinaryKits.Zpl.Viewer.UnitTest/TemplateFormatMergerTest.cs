@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using BinaryKits.Zpl.Analyzer;
 using BinaryKits.Zpl.Label;
 using BinaryKits.Zpl.Label.Elements;
-using BinaryKits.Zpl.Viewer.Models;
+using BinaryKits.Zpl.Analyzer.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace BinaryKits.Zpl.Viewer.UnitTest

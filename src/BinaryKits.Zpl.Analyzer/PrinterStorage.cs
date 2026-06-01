@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 
-namespace BinaryKits.Zpl.Viewer
+namespace BinaryKits.Zpl.Analyzer
 {
     public class PrinterStorage : IPrinterStorage
     {

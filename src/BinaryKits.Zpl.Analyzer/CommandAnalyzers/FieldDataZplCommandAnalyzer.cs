@@ -1,12 +1,12 @@
-﻿using BinaryKits.Zpl.Label;
+using BinaryKits.Zpl.Label;
 using BinaryKits.Zpl.Label.Elements;
-using BinaryKits.Zpl.Viewer.Models;
+using BinaryKits.Zpl.Analyzer.Models;
 
 using System;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace BinaryKits.Zpl.Viewer.CommandAnalyzers
+namespace BinaryKits.Zpl.Analyzer.CommandAnalyzers
 {
     public class FieldDataZplCommandAnalyzer : ZplCommandAnalyzerBase
     {

@@ -1,4 +1,4 @@
-﻿namespace BinaryKits.Zpl.Viewer.Models
+namespace BinaryKits.Zpl.Analyzer.Models
 {
     public class LabelPosition
     {

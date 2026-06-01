@@ -1,9 +1,9 @@
-﻿using BinaryKits.Zpl.Label;
-using BinaryKits.Zpl.Viewer.Models;
+using BinaryKits.Zpl.Label;
+using BinaryKits.Zpl.Analyzer.Models;
 
 using System.Collections.Generic;
 
-namespace BinaryKits.Zpl.Viewer
+namespace BinaryKits.Zpl.Analyzer
 {
     public class VirtualPrinter
     {

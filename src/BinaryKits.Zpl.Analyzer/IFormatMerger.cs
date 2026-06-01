@@ -1,8 +1,8 @@
-﻿using BinaryKits.Zpl.Viewer.Models;
+using BinaryKits.Zpl.Analyzer.Models;
 
 using System.Collections.Generic;
 
-namespace BinaryKits.Zpl.Viewer
+namespace BinaryKits.Zpl.Analyzer
 {
     /// <summary>
     /// Helper service responsible of merging <see cref="LabelInfo"/>s

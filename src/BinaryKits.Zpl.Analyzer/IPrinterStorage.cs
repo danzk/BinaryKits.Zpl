@@ -1,4 +1,4 @@
-﻿namespace BinaryKits.Zpl.Viewer
+namespace BinaryKits.Zpl.Analyzer
 {
     public interface IPrinterStorage
     {

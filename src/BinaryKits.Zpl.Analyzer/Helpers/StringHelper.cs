@@ -5,7 +5,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace BinaryKits.Zpl.Viewer.Helpers
+namespace BinaryKits.Zpl.Analyzer.Helpers
 {
     public static class StringHelper
     {

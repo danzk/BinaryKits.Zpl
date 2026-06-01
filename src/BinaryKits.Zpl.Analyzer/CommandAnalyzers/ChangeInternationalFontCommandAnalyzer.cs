@@ -1,9 +1,9 @@
-﻿using BinaryKits.Zpl.Label;
+using BinaryKits.Zpl.Label;
 using BinaryKits.Zpl.Label.Elements;
 
 using System;
 
-namespace BinaryKits.Zpl.Viewer.CommandAnalyzers
+namespace BinaryKits.Zpl.Analyzer.CommandAnalyzers
 {
     public class ChangeInternationalFontCommandAnalyzer : ZplCommandAnalyzerBase
     {

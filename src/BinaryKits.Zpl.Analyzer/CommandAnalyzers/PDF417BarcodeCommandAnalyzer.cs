@@ -1,11 +1,11 @@
-﻿using BinaryKits.Zpl.Label;
+using BinaryKits.Zpl.Label;
 using BinaryKits.Zpl.Label.Elements;
-using BinaryKits.Zpl.Viewer.Models;
+using BinaryKits.Zpl.Analyzer.Models;
 
 using System;
 using System.Globalization;
 
-namespace BinaryKits.Zpl.Viewer.CommandAnalyzers
+namespace BinaryKits.Zpl.Analyzer.CommandAnalyzers
 {
     public class PDF417ZplCommandAnalyzer : ZplCommandAnalyzerBase
     {

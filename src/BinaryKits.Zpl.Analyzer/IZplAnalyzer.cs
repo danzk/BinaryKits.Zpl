@@ -1,6 +1,6 @@
-﻿using BinaryKits.Zpl.Viewer.Models;
+using BinaryKits.Zpl.Analyzer.Models;
 
-namespace BinaryKits.Zpl.Viewer
+namespace BinaryKits.Zpl.Analyzer
 {
     public interface IZplAnalyzer
     {

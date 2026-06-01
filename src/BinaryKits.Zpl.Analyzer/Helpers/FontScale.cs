@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
-namespace BinaryKits.Zpl.Viewer.Helpers
+namespace BinaryKits.Zpl.Analyzer.Helpers
 {
     using FontScaleDictionary = Dictionary<string, (int height, int width)>;
 

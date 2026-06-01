@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace BinaryKits.Zpl.Viewer.Symologies
+namespace BinaryKits.Zpl.Analyzer.Symologies
 {
     public static class MaxiCodeSymbology
     {

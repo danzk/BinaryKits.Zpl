@@ -1,4 +1,5 @@
-﻿using BinaryKits.Zpl.Viewer.ElementDrawers;
+﻿using BinaryKits.Zpl.Analyzer;
+using BinaryKits.Zpl.Viewer.ElementDrawers;
 using BinaryKits.Zpl.Viewer.WebApi.Models;
 using BinaryKits.Zpl.Viewer.WebApi.Properties;
 

@@ -1,6 +1,6 @@
-﻿using BinaryKits.Zpl.Label.Elements;
+using BinaryKits.Zpl.Label.Elements;
 
-namespace BinaryKits.Zpl.Viewer.Models
+namespace BinaryKits.Zpl.Analyzer.Models
 {
     public class LabelInfo
     {

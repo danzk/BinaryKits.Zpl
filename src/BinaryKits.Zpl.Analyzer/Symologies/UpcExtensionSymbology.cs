@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace BinaryKits.Zpl.Viewer.Symologies
+namespace BinaryKits.Zpl.Analyzer.Symologies
 {
     public class UpcExtensionSymbology
     {

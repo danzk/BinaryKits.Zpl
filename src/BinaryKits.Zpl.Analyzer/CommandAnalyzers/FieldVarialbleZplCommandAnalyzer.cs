@@ -1,4 +1,4 @@
-﻿namespace BinaryKits.Zpl.Viewer.CommandAnalyzers
+namespace BinaryKits.Zpl.Analyzer.CommandAnalyzers
 {
     // TODO: fix virtual printer, must enable the MC command
     // TODO: factor out common parts from FieldDataZplCommandAnalyzer so both can inherit
