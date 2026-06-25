@@ -20,4 +20,10 @@
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
 </ItemGroup>
+  <!-- The shared sample-label corpus, for the geometry-vs-legacy comparison test. -->
+  <ItemGroup>
+    <Content Include="..\BinaryKits.Zpl.Viewer.WebApi\Labels\**\*.zpl2"
+             Link="Labels\%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>
