@@ -1,5 +1,6 @@
 ﻿using BinaryKits.Zpl.Analyzer;
 using BinaryKits.Zpl.Viewer.ElementDrawers;
+using BinaryKits.Zpl.Viewer.Geometry;
 using BinaryKits.Zpl.Viewer.WebApi.Models;
 using BinaryKits.Zpl.Viewer.WebApi.Properties;
 
@@ -67,6 +68,8 @@ namespace BinaryKits.Zpl.Viewer.WebApi.Controllers
             }
 
             var drawer = new ZplElementDrawer(printerStorage, drawerOptions);
+            // Geometry-first renderer: always used for PDF (vector output), optionally for PNG.
+            var geomDrawer = new SkiaGeometryRenderer(printerStorage, drawerOptions);
 
             var analyzer = new ZplAnalyzer(printerStorage);
             var analyzeInfo = analyzer.Analyze(request.ZplData);
@@ -75,43 +78,25 @@ namespace BinaryKits.Zpl.Viewer.WebApi.Controllers
             var pdfs = new List<RenderLabelDto>();
             foreach (var labelInfo in analyzeInfo.LabelInfos)
             {
-                if (request.Type == "image")
+                if (request.Type == "image" || request.Type == "both")
                 {
-                    var imageData = drawer.Draw(labelInfo.ZplElements, request.LabelWidth, request.LabelHeight, request.PrintDensityDpmm);
-                    var label = new RenderLabelDto
+                    var imageData = drawerOptions.UseGeometryRenderer
+                        ? geomDrawer.DrawPng(labelInfo.ZplElements, request.LabelWidth, request.LabelHeight, request.PrintDensityDpmm)
+                        : drawer.Draw(labelInfo.ZplElements, request.LabelWidth, request.LabelHeight, request.PrintDensityDpmm);
+                    labels.Add(new RenderLabelDto
                     {
                         ImageBase64 = Convert.ToBase64String(imageData)
-                    };
-                    labels.Add(label);
+                    });
                 }
-                
-                if (request.Type == "PDF")
+
+                if (request.Type == "PDF" || request.Type == "both")
                 {
-                    var pdfData = drawer.DrawPdf(labelInfo.ZplElements, request.LabelWidth, request.LabelHeight, request.PrintDensityDpmm);
-                    var pdf = new RenderLabelDto
+                    // Vector PDF via the geometry renderer (^FR and barcodes stay vector; no FixPdfInvertDraw).
+                    var pdfData = geomDrawer.DrawPdf(labelInfo.ZplElements, request.LabelWidth, request.LabelHeight, request.PrintDensityDpmm);
+                    pdfs.Add(new RenderLabelDto
                     {
                         PdfBase64 = Convert.ToBase64String(pdfData)
-                    };
-                    pdfs.Add(pdf);
-                }
-                
-                if (request.Type == "both")
-                {
-                    var bothData = drawer.DrawMulti(labelInfo.ZplElements, request.LabelWidth, request.LabelHeight, request.PrintDensityDpmm);
-                    
-                    var imageData = bothData[0];
-                    var label = new RenderLabelDto
-                    {
-                        ImageBase64 = Convert.ToBase64String(imageData)
-                    };
-                    labels.Add(label);
-                    
-                    var pdfData = bothData[1];
-                    var pdf = new RenderLabelDto
-                    {
-                        PdfBase64 = Convert.ToBase64String(pdfData)
-                    };
-                    pdfs.Add(pdf);
+                    });
                 }
             }
 
