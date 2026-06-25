@@ -214,5 +214,39 @@ namespace BinaryKits.Zpl.Viewer.UnitTest
             File.WriteAllBytes(Path.Combine(outDir, "label-geometry.pdf"), geomPdf);
             File.WriteAllBytes(Path.Combine(outDir, "label-legacy.pdf"), legacyPdf);
         }
+
+        // ^GE used to ignore ^FR / white line colour (a wrong is-ZplGraphicCircle type check). A solid
+        // reverse ellipse over a black bar must knock out white; both renderers must now agree.
+        private const string EllipseReverseZpl =
+            "^XA" +
+            "^FO40,40^GB400,300,300^FS" +          // solid black bar
+            "^FO120,90^FR^GE200,140,100^FS" +      // reverse solid ellipse -> white knockout
+            "^XZ";
+
+        [TestMethod]
+        public void DrawPng_EllipseReverse_KnocksOut_AndMatchesLegacy()
+        {
+            IPrinterStorage storage = new PrinterStorage();
+            var analyzer = new ZplAnalyzer(storage);
+            var elements = analyzer.Analyze(EllipseReverseZpl).LabelInfos[0].ZplElements;
+
+            var options = new DrawerOptions(new FontManager()) { OpaqueBackground = true };
+            byte[] geomPng = new SkiaGeometryRenderer(storage, options).DrawPng(elements, 101.6, 152.4, 8);
+            byte[] legacyPng = new ZplElementDrawer(storage, options).Draw(elements, 101.6, 152.4, 8);
+
+            using var g = SKBitmap.Decode(geomPng);
+            using var l = SKBitmap.Decode(legacyPng);
+
+            // Ellipse centre (~220,160) is knocked out white; a bar point outside the ellipse stays black.
+            Assert.AreEqual(SKColors.White, g.GetPixel(220, 160), "geometry: ellipse interior should be knocked out");
+            Assert.AreEqual(SKColors.Black, g.GetPixel(60, 60), "geometry: surrounding bar should be black");
+            Assert.AreEqual(l.GetPixel(220, 160), g.GetPixel(220, 160), "geometry vs legacy: ellipse centre");
+            Assert.AreEqual(l.GetPixel(60, 60), g.GetPixel(60, 60), "geometry vs legacy: bar");
+
+            var outDir = Path.Combine(Path.GetTempPath(), "GeometryRenderTests");
+            Directory.CreateDirectory(outDir);
+            File.WriteAllBytes(Path.Combine(outDir, "ellipse-reverse-geometry.png"), geomPng);
+            File.WriteAllBytes(Path.Combine(outDir, "ellipse-reverse-legacy.png"), legacyPng);
+        }
     }
 }

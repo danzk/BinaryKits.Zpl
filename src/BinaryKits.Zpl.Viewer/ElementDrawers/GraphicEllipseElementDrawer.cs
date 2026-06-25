@@ -15,7 +15,7 @@ namespace BinaryKits.Zpl.Viewer.ElementDrawers
 
         public override bool IsReverseDraw(ZplElementBase element)
         {
-            if (element is ZplGraphicCircle graphicEllipse)
+            if (element is ZplGraphicEllipse graphicEllipse)
             {
                 return graphicEllipse.ReversePrint;
             }
@@ -25,7 +25,7 @@ namespace BinaryKits.Zpl.Viewer.ElementDrawers
 
         public override bool IsWhiteDraw(ZplElementBase element)
         {
-            if (element is ZplGraphicCircle graphicEllipse)
+            if (element is ZplGraphicEllipse graphicEllipse)
             {
                 return graphicEllipse.LineColor == LineColor.White;
             }
@@ -88,6 +88,15 @@ namespace BinaryKits.Zpl.Viewer.ElementDrawers
                     Color = SKColors.Black,
                     StrokeWidth = border
                 };
+                if (graphicEllipse.LineColor == LineColor.White)
+                {
+                    skPaint.Color = SKColors.White;
+                }
+
+                if (graphicEllipse.ReversePrint)
+                {
+                    skPaint.BlendMode = SKBlendMode.Xor;
+                }
 
                 this.skCanvas.DrawOval(bounds, skPaint);
                 return this.CalculateNextDefaultPosition(x, y, width, height, graphicEllipse.FieldOrigin != null, FieldOrientation.Normal, currentPosition);
