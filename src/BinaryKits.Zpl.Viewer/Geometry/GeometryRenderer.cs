@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -17,7 +17,7 @@ namespace BinaryKits.Zpl.Viewer.Geometry
 {
     /// <summary>
     /// Geometry-first ZPL renderer over <see cref="SKPath"/>. Builds the label as an ordered display list
-    /// (<see cref="SkLabelDrawing"/>) and
+    /// (<see cref="LabelDrawing"/>) and
     /// renders it onto either a raster <c>SKSurface</c> (PNG) or an <c>SKDocument</c> page (vector PDF).
     /// Because every element is filled geometry, the PDF stays crisp vector — there is no
     /// <c>SKBlendMode.Xor</c> / <c>FixPdfInvertDraw</c> rasterisation.
@@ -25,13 +25,13 @@ namespace BinaryKits.Zpl.Viewer.Geometry
     /// <para>Drawers are per-instance (not static), so a renderer instance is self-contained; create one
     /// per render request.</para>
     /// </summary>
-    public sealed class SkiaGeometryRenderer
+    public sealed class GeometryRenderer
     {
         private readonly IGeometryElementDrawer[] _elementDrawers;
         private readonly DrawerOptions _options;
         private readonly IPrinterStorage _printerStorage;
 
-        public SkiaGeometryRenderer(IPrinterStorage printerStorage, DrawerOptions options = null)
+        public GeometryRenderer(IPrinterStorage printerStorage, DrawerOptions options = null)
         {
             _printerStorage = printerStorage;
             _options = options ?? new DrawerOptions();
@@ -65,22 +65,22 @@ namespace BinaryKits.Zpl.Viewer.Geometry
         }
 
         /// <summary>
-        /// Build the label into a reusable <see cref="SkLabelDrawing"/> — the canonical, surface-agnostic
+        /// Build the label into a reusable <see cref="LabelDrawing"/> — the canonical, surface-agnostic
         /// artifact. Coordinates are in ZPL dots (1 dot = 1 unit).
         /// </summary>
         /// <param name="elements">Zpl elements</param>
         /// <param name="labelWidth">Label width in millimetres</param>
         /// <param name="labelHeight">Label height in millimetres</param>
         /// <param name="printDensityDpmm">Dots per millimetre</param>
-        public SkLabelDrawing CreateLabelDrawing(
+        public LabelDrawing CreateLabelDrawing(
             IEnumerable<ZplElementBase> elements,
             double labelWidth = 101.6,
             double labelHeight = 152.4,
             int printDensityDpmm = 8)
         {
             (int width, int height) = LabelSize(labelWidth, labelHeight, printDensityDpmm);
-            List<SkLabelOp> ops = BuildContent(elements, width, height, printDensityDpmm);
-            return new SkLabelDrawing(width, height, ops);
+            List<LabelOp> ops = BuildContent(elements, width, height, printDensityDpmm);
+            return new LabelDrawing(width, height, ops);
         }
 
         /// <summary>The appearance/mode for rendering, derived from the drawer options.</summary>
@@ -105,7 +105,7 @@ namespace BinaryKits.Zpl.Viewer.Geometry
                 scale = 1;
             }
 
-            SkLabelDrawing label = CreateLabelDrawing(elements, labelWidth, labelHeight, printDensityDpmm);
+            LabelDrawing label = CreateLabelDrawing(elements, labelWidth, labelHeight, printDensityDpmm);
 
             var info = new SKImageInfo(label.Width * scale, label.Height * scale);
             using (SKSurface surface = SKSurface.Create(info))
@@ -143,7 +143,7 @@ namespace BinaryKits.Zpl.Viewer.Geometry
             double labelHeight = 152.4,
             int printDensityDpmm = 8)
         {
-            SkLabelDrawing label = CreateLabelDrawing(elements, labelWidth, labelHeight, printDensityDpmm);
+            LabelDrawing label = CreateLabelDrawing(elements, labelWidth, labelHeight, printDensityDpmm);
 
             float pageWidthPt = (float)(labelWidth / 25.4 * 72.0);
             float pageHeightPt = (float)(labelHeight / 25.4 * 72.0);
@@ -181,7 +181,7 @@ namespace BinaryKits.Zpl.Viewer.Geometry
             double labelHeight = 152.4,
             int printDensityDpmm = 8)
         {
-            SkLabelDrawing label = CreateLabelDrawing(elements, labelWidth, labelHeight, printDensityDpmm);
+            LabelDrawing label = CreateLabelDrawing(elements, labelWidth, labelHeight, printDensityDpmm);
 
             using (var stream = new SKDynamicMemoryWStream())
             {
@@ -264,11 +264,11 @@ namespace BinaryKits.Zpl.Viewer.Geometry
         /// disjoint from the field contributes nothing to the intersection or the subtraction, so the
         /// bounding-box filter is exact, not an approximation.</para>
         /// </summary>
-        private List<SkLabelOp> BuildContent(
+        private List<LabelOp> BuildContent(
             IEnumerable<ZplElementBase> elements, int width, int height, int printDensityDpmm)
         {
-            var context = new SkDrawContext(width, height);
-            var ops = new List<SkLabelOp>();
+            var context = new DrawContext(width, height);
+            var ops = new List<LabelOp>();
 
             // Ordered black-compositing ops (Union = black fill, Difference = white fill, Xor = reverse),
             // each with its bounds. Built lazily the first time a reverse needs it; null until then, so
@@ -313,7 +313,7 @@ namespace BinaryKits.Zpl.Viewer.Geometry
                             SKPath localBlack = ComposeOverlapping(blackOps, fieldBounds);
                             if (localBlack == null)
                             {
-                                ops.Add(SkLabelOp.Black(black));     // nothing underneath: reverse is all black
+                                ops.Add(LabelOp.Black(black));     // nothing underneath: reverse is all black
                             }
                             else
                             {
@@ -321,12 +321,12 @@ namespace BinaryKits.Zpl.Viewer.Geometry
                                 SKPath add = black.Op(localBlack, SKPathOp.Difference);   // add black where it doesn't
                                 if (erase != null && !erase.IsEmpty)
                                 {
-                                    ops.Add(SkLabelOp.WhiteFill(erase));
+                                    ops.Add(LabelOp.WhiteFill(erase));
                                 }
 
                                 if (add != null && !add.IsEmpty)
                                 {
-                                    ops.Add(SkLabelOp.Black(add));
+                                    ops.Add(LabelOp.Black(add));
                                 }
                             }
 
@@ -337,20 +337,20 @@ namespace BinaryKits.Zpl.Viewer.Geometry
                     {
                         if (black != null)
                         {
-                            ops.Add(SkLabelOp.Black(black));
+                            ops.Add(LabelOp.Black(black));
                             blackOps?.Add(new BlackOp(black, SKPathOp.Union));
                         }
 
                         if (white != null)
                         {
-                            ops.Add(SkLabelOp.WhiteFill(white));
+                            ops.Add(LabelOp.WhiteFill(white));
                             blackOps?.Add(new BlackOp(white, SKPathOp.Difference));
                         }
                     }
 
-                    foreach (SkImageOp image in context.TakeImages())
+                    foreach (ImageOp image in context.TakeImages())
                     {
-                        ops.Add(SkLabelOp.Img(image));
+                        ops.Add(LabelOp.Img(image));
                     }
                 }
                 catch (Exception ex)
@@ -379,10 +379,10 @@ namespace BinaryKits.Zpl.Viewer.Geometry
         }
 
         /// <summary>Seed the black-op list from the fill ops emitted so far (black = Union, white = Difference).</summary>
-        private static List<BlackOp> BuildBlackOps(List<SkLabelOp> ops)
+        private static List<BlackOp> BuildBlackOps(List<LabelOp> ops)
         {
             var list = new List<BlackOp>(ops.Count);
-            foreach (SkLabelOp op in ops)
+            foreach (LabelOp op in ops)
             {
                 if (!op.IsImage)
                 {

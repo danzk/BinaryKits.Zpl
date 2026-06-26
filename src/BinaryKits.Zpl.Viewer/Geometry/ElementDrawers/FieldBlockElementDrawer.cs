@@ -57,7 +57,7 @@ namespace BinaryKits.Zpl.Viewer.Geometry.ElementDrawers
                 }
             }
 
-            float capHeight = SkTextRenderer.CapHeight(skFont);
+            float capHeight = TextRenderer.CapHeight(skFont);
 
             float x = fieldBlock.PositionX;
             float y = fieldBlock.PositionY + capHeight;
@@ -116,7 +116,7 @@ namespace BinaryKits.Zpl.Viewer.Geometry.ElementDrawers
             {
                 x = fieldBlock.PositionX + hangingIndent;
 
-                SKRect textBounds = SkTextRenderer.MeasureTightBounds(skFont, textLine, scaleX);
+                SKRect textBounds = TextRenderer.MeasureTightBounds(skFont, textLine, scaleX);
                 float diff = fieldBlock.Width - textBounds.Width;
 
                 switch (fieldBlock.TextJustification)
@@ -135,7 +135,7 @@ namespace BinaryKits.Zpl.Viewer.Geometry.ElementDrawers
                         break;
                 }
 
-                SKPath geometry = SkTextRenderer.BuildGeometryGlyphRun(skFont, textLine, scaleX, new SKPoint(x, y));
+                SKPath geometry = TextRenderer.BuildGeometryGlyphRun(skFont, textLine, scaleX, new SKPoint(x, y));
                 this.context.AddBlack(geometry);
                 y += lineHeight;
             }
@@ -156,7 +156,7 @@ namespace BinaryKits.Zpl.Viewer.Geometry.ElementDrawers
 
         private static List<string> WordWrap(string text, SKFont font, float scaleX, int maxWidth)
         {
-            float spaceWidth = SkTextRenderer.MeasureAdvance(font, " ", scaleX);
+            float spaceWidth = TextRenderer.MeasureAdvance(font, " ", scaleX);
             List<string> lines = new List<string>();
 
             Stack<string> words = new Stack<string>(text.Split(new[] { ' ' }, StringSplitOptions.None).AsEnumerable().Reverse());
@@ -170,7 +170,7 @@ namespace BinaryKits.Zpl.Viewer.Geometry.ElementDrawers
                     string[] subwords = word.Split(new[] { @"\&" }, 2, StringSplitOptions.None);
                     word = subwords[0];
                     words.Push(subwords[1]);
-                    float wordWidth = SkTextRenderer.MeasureAdvance(font, word, scaleX);
+                    float wordWidth = TextRenderer.MeasureAdvance(font, word, scaleX);
                     if (width + wordWidth <= maxWidth)
                     {
                         line.Append(word);
@@ -192,7 +192,7 @@ namespace BinaryKits.Zpl.Viewer.Geometry.ElementDrawers
                 }
                 else
                 {
-                    float wordWidth = SkTextRenderer.MeasureAdvance(font, word, scaleX);
+                    float wordWidth = TextRenderer.MeasureAdvance(font, word, scaleX);
                     if (width + wordWidth <= maxWidth)
                     {
                         line.Append(word + " ");

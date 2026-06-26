@@ -150,7 +150,7 @@ namespace BinaryKits.Zpl.Viewer.Geometry.ElementDrawers
             bool hasRot = rot != SKMatrix.Empty;
             if (hasRot) this.context.PushTransform(rot);
 
-            SKRect textBounds = SkTextRenderer.MeasureTightBounds(font, interpretation, 1f);
+            SKRect textBounds = TextRenderer.MeasureTightBounds(font, interpretation, 1f);
             float penX = x + (barcodeWidth - textBounds.Width) / 2;
             float yy = y;
             if (!useFieldOrigin)
@@ -159,10 +159,10 @@ namespace BinaryKits.Zpl.Viewer.Geometry.ElementDrawers
                 if (yy < 0) yy = 0;
             }
 
-            float margin = Math.Max((SkTextRenderer.LineSpacing(font) - textBounds.Height) / 2, MIN_LABEL_MARGIN);
+            float margin = Math.Max((TextRenderer.LineSpacing(font) - textBounds.Height) / 2, MIN_LABEL_MARGIN);
             float baselineY = printAboveCode ? yy - margin : yy + barcodeHeight + textBounds.Height + margin;
 
-            SKPath g = SkTextRenderer.BuildGeometryGlyphRun(font, interpretation, 1f, new SKPoint(penX, baselineY));
+            SKPath g = TextRenderer.BuildGeometryGlyphRun(font, interpretation, 1f, new SKPoint(penX, baselineY));
             this.context.AddBlack(g);
 
             if (hasRot) this.context.Pop();
@@ -182,7 +182,7 @@ namespace BinaryKits.Zpl.Viewer.Geometry.ElementDrawers
             bool hasRot = rot != SKMatrix.Empty;
             if (hasRot) this.context.PushTransform(rot);
 
-            SKRect textBounds = SkTextRenderer.MeasureTightBounds(font, interpretation, 1f);
+            SKRect textBounds = TextRenderer.MeasureTightBounds(font, interpretation, 1f);
             float yy = y;
             if (!useFieldOrigin)
             {
@@ -190,7 +190,7 @@ namespace BinaryKits.Zpl.Viewer.Geometry.ElementDrawers
                 if (yy < 0) yy = 0;
             }
 
-            float margin = Math.Max((SkTextRenderer.LineSpacing(font) - textBounds.Height) / 2, MIN_LABEL_MARGIN);
+            float margin = Math.Max((TextRenderer.LineSpacing(font) - textBounds.Height) / 2, MIN_LABEL_MARGIN);
             int spacing = moduleWidth * 7;
 
             int guardHeight = (int)(margin + textBounds.Height / 2);
@@ -207,9 +207,9 @@ namespace BinaryKits.Zpl.Viewer.Geometry.ElementDrawers
             for (int i = 0; i < interpretation.Length; i++)
             {
                 string digit = interpretation[i].ToString();
-                SKRect digitBounds = SkTextRenderer.MeasureTightBounds(font, digit, 1f);
+                SKRect digitBounds = TextRenderer.MeasureTightBounds(font, digit, 1f);
                 float penX = cx - (spacing + digitBounds.Width) / 2 - moduleWidth;
-                SKPath g = SkTextRenderer.BuildGeometryGlyphRun(font, digit, 1f, new SKPoint(penX, baselineY));
+                SKPath g = TextRenderer.BuildGeometryGlyphRun(font, digit, 1f, new SKPoint(penX, baselineY));
                 this.context.AddBlack(g);
 
                 cx += spacing + extraModulesAfter(i) * moduleWidth;

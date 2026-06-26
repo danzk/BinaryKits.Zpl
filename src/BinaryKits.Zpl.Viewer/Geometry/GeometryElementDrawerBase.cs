@@ -15,9 +15,9 @@ namespace BinaryKits.Zpl.Viewer.Geometry
     public abstract class GeometryElementDrawerBase : IGeometryElementDrawer
     {
         protected IPrinterStorage printerStorage;
-        protected SkDrawContext context;
+        protected DrawContext context;
 
-        public void Prepare(IPrinterStorage printerStorage, SkDrawContext context)
+        public void Prepare(IPrinterStorage printerStorage, DrawContext context)
         {
             this.printerStorage = printerStorage;
             this.context = context;

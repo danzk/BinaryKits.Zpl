@@ -57,7 +57,7 @@ namespace BinaryKits.Zpl.Viewer.UnitTest
 
             // One shared FontManager so both renderers resolve identical typefaces.
             var options = new DrawerOptions(new FontManager()) { OpaqueBackground = true };
-            var geom = new SkiaGeometryRenderer(storage, options);
+            var geom = new GeometryRenderer(storage, options);
             var legacy = new ZplElementDrawer(storage, options);
 
             byte[] geomPng = geom.DrawPng(elements, width, height, 8);

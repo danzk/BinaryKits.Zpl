@@ -45,7 +45,7 @@ namespace BinaryKits.Zpl.Viewer.ElementDrawers
         public bool Antialias { get; set; } = true;
 
         /// <summary>
-        /// Use the geometry-first renderer (<c>BinaryKits.Zpl.Viewer.Geometry.SkiaGeometryRenderer</c>) for
+        /// Use the geometry-first renderer (<c>BinaryKits.Zpl.Viewer.Geometry.GeometryRenderer</c>) for
         /// raster (PNG) output as well. PDF output always uses the geometry renderer (it produces vector
         /// PDF). Default <c>false</c> keeps the legacy raster PNG path until geometry PNG parity is verified.
         /// </summary>

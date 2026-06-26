@@ -63,9 +63,9 @@ namespace BinaryKits.Zpl.Viewer.Geometry.ElementDrawers
                 }
             }
 
-            float capHeight = SkTextRenderer.CapHeight(skFont);
-            float totalWidth = SkTextRenderer.MeasureAdvance(skFont, displayText, scaleX);
-            SKRect tightBounds = SkTextRenderer.MeasureTightBounds(skFont, displayText, scaleX);
+            float capHeight = TextRenderer.CapHeight(skFont);
+            float totalWidth = TextRenderer.MeasureAdvance(skFont, displayText, scaleX);
+            SKRect tightBounds = TextRenderer.MeasureTightBounds(skFont, displayText, scaleX);
 
             // Rotation pivots use the pre-baseline x/y (mirrors the Skia ordering).
             bool pushed = false;
@@ -120,7 +120,7 @@ namespace BinaryKits.Zpl.Viewer.Geometry.ElementDrawers
                 originX = x - totalWidth;
             }
 
-            SKPath geometry = SkTextRenderer.BuildGeometryGlyphRun(skFont, displayText, scaleX, new SKPoint(originX, y));
+            SKPath geometry = TextRenderer.BuildGeometryGlyphRun(skFont, displayText, scaleX, new SKPoint(originX, y));
             this.context.AddBlack(geometry);
 
             if (pushed)

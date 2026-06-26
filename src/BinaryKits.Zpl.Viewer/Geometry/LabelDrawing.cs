@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using SkiaSharp;
 
@@ -12,7 +12,7 @@ namespace BinaryKits.Zpl.Viewer.Geometry
     /// built artifact renders onto any <see cref="SKCanvas"/> — a raster <c>SKSurface</c> (PNG) or an
     /// <c>SKDocument</c> page (vector PDF) — in any appearance, without rebuilding.
     /// </summary>
-    public sealed class SkLabelDrawing
+    public sealed class LabelDrawing
     {
         /// <summary>Label width in dots (1 dot = 1 unit).</summary>
         public int Width { get; }
@@ -20,9 +20,9 @@ namespace BinaryKits.Zpl.Viewer.Geometry
         /// <summary>Label height in dots.</summary>
         public int Height { get; }
 
-        private readonly IReadOnlyList<SkLabelOp> _ops;
+        private readonly IReadOnlyList<LabelOp> _ops;
 
-        internal SkLabelDrawing(int width, int height, IReadOnlyList<SkLabelOp> ops)
+        internal LabelDrawing(int width, int height, IReadOnlyList<LabelOp> ops)
         {
             this.Width = width;
             this.Height = height;
@@ -53,7 +53,7 @@ namespace BinaryKits.Zpl.Viewer.Geometry
             // white / reverse fields subtract from geometry only, not from embedded images.
             using (SKPaint imagePaint = BuildImagePaint(settings))
             {
-                foreach (SkLabelOp op in _ops)
+                foreach (LabelOp op in _ops)
                 {
                     if (op.IsImage)
                     {
@@ -68,7 +68,7 @@ namespace BinaryKits.Zpl.Viewer.Geometry
             }
         }
 
-        private static void DrawImage(SKCanvas canvas, SkImageOp img, SKPaint paint)
+        private static void DrawImage(SKCanvas canvas, ImageOp img, SKPaint paint)
         {
             if (img.Transform.IsIdentity)
             {
@@ -105,7 +105,7 @@ namespace BinaryKits.Zpl.Viewer.Geometry
             var pieceBounds = new List<SKRect>();
             var pieceKnockout = new List<SKPath>(); // owned accumulators, null until a knockout overlaps
 
-            foreach (SkLabelOp op in _ops)
+            foreach (LabelOp op in _ops)
             {
                 if (op.IsImage)
                 {

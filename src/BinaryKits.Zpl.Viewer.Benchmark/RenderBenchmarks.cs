@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -50,9 +50,9 @@ namespace BinaryKits.Zpl.Viewer.Benchmark
         private double _width;
         private double _height;
         private ZplElementBase[] _elements;
-        private SkiaGeometryRenderer _geometry;
+        private GeometryRenderer _geometry;
         private ZplElementDrawer _legacy;
-        private SkLabelDrawing _drawing;
+        private LabelDrawing _drawing;
         private SKSurface _surface;
         private SKCanvas _canvas;
         private RenderSettings _opaque;
@@ -69,7 +69,7 @@ namespace BinaryKits.Zpl.Viewer.Benchmark
             _elements = new ZplAnalyzer(storage).Analyze(zpl).LabelInfos[0].ZplElements;
 
             var options = new DrawerOptions(new FontManager()) { OpaqueBackground = true };
-            _geometry = new SkiaGeometryRenderer(storage, options);
+            _geometry = new GeometryRenderer(storage, options);
             _legacy = new ZplElementDrawer(storage, options);
 
             _opaque = new RenderSettings(SKColors.Black, SKColors.White, opaqueBackground: true, antialias: true);
@@ -85,7 +85,7 @@ namespace BinaryKits.Zpl.Viewer.Benchmark
 
         [Benchmark]
         [BenchmarkCategory("Build")]
-        public SkLabelDrawing Build() => _geometry.CreateLabelDrawing(_elements, _width, _height, Dpmm);
+        public LabelDrawing Build() => _geometry.CreateLabelDrawing(_elements, _width, _height, Dpmm);
 
         [Benchmark(Baseline = true)]
         [BenchmarkCategory("Render")]

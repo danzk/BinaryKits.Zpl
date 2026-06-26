@@ -11,16 +11,16 @@ namespace BinaryKits.Zpl.Viewer.Geometry
     /// transform stack mirrors <c>SKCanvas.Concat</c> + <c>SKAutoCanvasRestore</c>; the current transform
     /// is baked into each path as it is added (Skia is immediate-mode, so there is nothing to defer).
     /// </summary>
-    public sealed class SkDrawContext
+    public sealed class DrawContext
     {
         private readonly List<SKPath> _black = new List<SKPath>();
         private readonly List<SKPath> _white = new List<SKPath>();
-        private readonly List<SkImageOp> _images = new List<SkImageOp>();
+        private readonly List<ImageOp> _images = new List<ImageOp>();
 
         private readonly Stack<SKMatrix> _transformStack = new Stack<SKMatrix>();
         private SKMatrix _current = SKMatrix.CreateIdentity();
 
-        public SkDrawContext(int pixelWidth, int pixelHeight)
+        public DrawContext(int pixelWidth, int pixelHeight)
         {
             this.PixelWidth = pixelWidth;
             this.PixelHeight = pixelHeight;
@@ -68,7 +68,7 @@ namespace BinaryKits.Zpl.Viewer.Geometry
         /// <summary>Add a raster image draw operation, baking in the current transform.</summary>
         public void AddImage(SKImage image, SKRect destination)
         {
-            _images.Add(new SkImageOp(image, destination, _current));
+            _images.Add(new ImageOp(image, destination, _current));
         }
 
         private SKPath ApplyCurrent(SKPath path)
@@ -93,11 +93,11 @@ namespace BinaryKits.Zpl.Viewer.Geometry
         public SKPath TakeWhite() => Combine(_white);
 
         /// <summary>Return and clear the current element's image operations.</summary>
-        public IReadOnlyList<SkImageOp> TakeImages()
+        public IReadOnlyList<ImageOp> TakeImages()
         {
             if (_images.Count == 0)
             {
-                return System.Array.Empty<SkImageOp>();
+                return System.Array.Empty<ImageOp>();
             }
 
             var copy = _images.ToArray();

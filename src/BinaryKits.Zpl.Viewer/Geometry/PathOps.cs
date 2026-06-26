@@ -7,7 +7,7 @@ namespace BinaryKits.Zpl.Viewer.Geometry
     /// <see cref="SKPathFillType.Winding"/> (non-zero) fill so the two-contour "ring" trick (outer
     /// clockwise + inner counter-clockwise) cuts a hole under non-zero winding.
     /// </summary>
-    internal static class SkPathOps
+    internal static class PathOps
     {
         /// <summary>A (possibly rounded) rectangle as a filled <see cref="SKPath"/>.</summary>
         public static SKPath Rectangle(SKRect rect, float rx, float ry)

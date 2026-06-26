@@ -6,9 +6,9 @@ namespace BinaryKits.Zpl.Viewer.Geometry
     /// A single image draw operation (for <c>^GF</c> / <c>^IM</c> / <c>^XG</c> elements that have no
     /// geometry equivalent). The transform is a baked <see cref="SKMatrix"/>.
     /// </summary>
-    public readonly struct SkImageOp
+    public readonly struct ImageOp
     {
-        public SkImageOp(SKImage image, SKRect destination, SKMatrix transform)
+        public ImageOp(SKImage image, SKRect destination, SKMatrix transform)
         {
             this.Image = image;
             this.Destination = destination;

@@ -71,12 +71,12 @@ namespace BinaryKits.Zpl.Viewer.Geometry.ElementDrawers
             double ih = height1 - 2.0 * border;
             if (iw <= 0 || ih <= 0)
             {
-                borderGeometry = SkPathOps.Rectangle(outerRect, (float)rOuter, (float)rOuter); // solid bar
+                borderGeometry = PathOps.Rectangle(outerRect, (float)rOuter, (float)rOuter); // solid bar
             }
             else
             {
                 var innerRect = SKRect.Create((float)(baseX + border), (float)(top + border), (float)iw, (float)ih);
-                borderGeometry = SkPathOps.MakeRectRing(outerRect, (float)rOuter, innerRect, (float)rInner);
+                borderGeometry = PathOps.MakeRectRing(outerRect, (float)rOuter, innerRect, (float)rInner);
             }
 
             // Reverse always feeds the black bucket (the orchestrator decides background vs white XOR).

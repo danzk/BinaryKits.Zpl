@@ -11,7 +11,7 @@ namespace BinaryKits.Zpl.Viewer.Geometry
     /// over text and keeps it crisp vector in a PDF/SVG. Filled outlines render a touch heavier than the glyph
     /// blitter's gamma-corrected antialiasing — an inherent, print-imperceptible edge difference.</para>
     /// </summary>
-    public static class SkTextRenderer
+    public static class TextRenderer
     {
         /// <summary>Line spacing — Skia's recommended spacing at the font size (barcode interpretation margins).</summary>
         public static float LineSpacing(SKFont font) => font.Spacing;
@@ -75,7 +75,7 @@ namespace BinaryKits.Zpl.Viewer.Geometry
 
             if (scaleX != 1f)
             {
-                outline.Transform(SkPathOps.HorizontalScale(scaleX, baselineOrigin));
+                outline.Transform(PathOps.HorizontalScale(scaleX, baselineOrigin));
             }
 
             return outline;

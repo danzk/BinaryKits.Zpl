@@ -56,11 +56,11 @@ namespace BinaryKits.Zpl.Viewer.Geometry.ElementDrawers
             double innerRadius = radius - border;
             if (innerRadius <= 0)
             {
-                borderGeometry = SkPathOps.Ellipse(center, (float)radius, (float)radius);
+                borderGeometry = PathOps.Ellipse(center, (float)radius, (float)radius);
             }
             else
             {
-                borderGeometry = SkPathOps.MakeEllipseRing(center, (float)radius, (float)radius, (float)innerRadius, (float)innerRadius);
+                borderGeometry = PathOps.MakeEllipseRing(center, (float)radius, (float)radius, (float)innerRadius, (float)innerRadius);
             }
 
             if (!graphicCircle.ReversePrint && graphicCircle.LineColor == LineColor.White)

@@ -10,13 +10,13 @@ namespace BinaryKits.Zpl.Viewer.Geometry
     /// <summary>
     /// Geometry-first drawer contract: unlike <see cref="IElementDrawer"/> (which paints straight onto an
     /// <see cref="SKCanvas"/>), an element drawer here <em>accumulates</em> <see cref="SKPath"/> geometry
-    /// into a <see cref="SkDrawContext"/> so the orchestrator can composite it (union / white-erase / <c>^FR</c>
+    /// into a <see cref="DrawContext"/> so the orchestrator can composite it (union / white-erase / <c>^FR</c>
     /// XOR).
     /// </summary>
     public interface IGeometryElementDrawer
     {
         /// <summary>Prepare the drawer with the printer storage and the geometry-accumulating context.</summary>
-        void Prepare(IPrinterStorage printerStorage, SkDrawContext context);
+        void Prepare(IPrinterStorage printerStorage, DrawContext context);
 
         /// <summary>Check if the drawer can draw this element.</summary>
         bool CanDraw(ZplElementBase element);

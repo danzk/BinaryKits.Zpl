@@ -14,7 +14,7 @@ using SkiaSharp;
 namespace BinaryKits.Zpl.Viewer.UnitTest
 {
     /// <summary>
-    /// Spike: render the corpus through <see cref="SkiaGeometryRenderer.DrawSvg"/> and check vector fidelity.
+    /// Spike: render the corpus through <see cref="GeometryRenderer.DrawSvg"/> and check vector fidelity.
     /// Writes the SVGs to %TEMP%/GeometryRenderTests/svg for inspection. Validates the two risk areas from the
     /// feasibility discussion: (1) reverse/barcode labels stay pure vector (no embedded raster), (2) genuine
     /// raster graphics embed as <c>&lt;image&gt;</c>, and probes whether the image color-filter (media → alpha 0)
@@ -41,7 +41,7 @@ namespace BinaryKits.Zpl.Viewer.UnitTest
                 options.LabelColor = stock.Value;
             }
 
-            byte[] bytes = new SkiaGeometryRenderer(storage, options).DrawSvg(elements, w, h, 8);
+            byte[] bytes = new GeometryRenderer(storage, options).DrawSvg(elements, w, h, 8);
 
             Directory.CreateDirectory(OutDir);
             string suffix = stock == SKColors.Transparent ? "-transparent" : "";

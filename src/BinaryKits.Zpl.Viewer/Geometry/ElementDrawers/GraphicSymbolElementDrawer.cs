@@ -42,8 +42,8 @@ namespace BinaryKits.Zpl.Viewer.Geometry.ElementDrawers
             using var skFont = new SKFont(typeface, emSize);
 
             string displayText = $"{(char)graphicSymbol.Character}";
-            float totalWidth = SkTextRenderer.MeasureAdvance(skFont, displayText, scaleX);
-            SKRect textBounds = SkTextRenderer.MeasureTightBounds(skFont, displayText, scaleX);
+            float totalWidth = TextRenderer.MeasureAdvance(skFont, displayText, scaleX);
+            SKRect textBounds = TextRenderer.MeasureTightBounds(skFont, displayText, scaleX);
 
             bool pushed = false;
             if (graphicSymbol.FieldOrigin != null)
@@ -92,7 +92,7 @@ namespace BinaryKits.Zpl.Viewer.Geometry.ElementDrawers
                 originX = x - totalWidth;
             }
 
-            SKPath geometry = SkTextRenderer.BuildGeometryGlyphRun(skFont, displayText, scaleX, new SKPoint(originX, y));
+            SKPath geometry = TextRenderer.BuildGeometryGlyphRun(skFont, displayText, scaleX, new SKPoint(originX, y));
             this.context.AddBlack(geometry);
 
             if (pushed)

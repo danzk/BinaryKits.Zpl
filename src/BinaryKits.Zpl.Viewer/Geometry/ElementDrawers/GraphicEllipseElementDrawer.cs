@@ -57,11 +57,11 @@ namespace BinaryKits.Zpl.Viewer.Geometry.ElementDrawers
             double innerRy = outerRy - border;
             if (innerRx <= 0 || innerRy <= 0)
             {
-                borderGeometry = SkPathOps.Ellipse(center, (float)outerRx, (float)outerRy);
+                borderGeometry = PathOps.Ellipse(center, (float)outerRx, (float)outerRy);
             }
             else
             {
-                borderGeometry = SkPathOps.MakeEllipseRing(center, (float)outerRx, (float)outerRy, (float)innerRx, (float)innerRy);
+                borderGeometry = PathOps.MakeEllipseRing(center, (float)outerRx, (float)outerRy, (float)innerRx, (float)innerRy);
             }
 
             // Reverse always feeds the black bucket (the orchestrator decides background vs white XOR).

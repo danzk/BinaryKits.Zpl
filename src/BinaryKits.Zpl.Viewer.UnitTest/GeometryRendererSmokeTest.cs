@@ -35,7 +35,7 @@ namespace BinaryKits.Zpl.Viewer.UnitTest
             var info = analyzer.Analyze(ShapesZpl);
             var elements = info.LabelInfos[0].ZplElements;
 
-            var renderer = new SkiaGeometryRenderer(storage, new DrawerOptions { OpaqueBackground = true });
+            var renderer = new GeometryRenderer(storage, new DrawerOptions { OpaqueBackground = true });
             byte[] png = renderer.DrawPng(elements, 101.6, 152.4, 8);
 
             Assert.IsNotNull(png);
@@ -73,7 +73,7 @@ namespace BinaryKits.Zpl.Viewer.UnitTest
             var analyzer = new ZplAnalyzer(storage);
             var elements = analyzer.Analyze(ReverseZpl).LabelInfos[0].ZplElements;
 
-            var renderer = new SkiaGeometryRenderer(storage, new DrawerOptions { OpaqueBackground = true });
+            var renderer = new GeometryRenderer(storage, new DrawerOptions { OpaqueBackground = true });
             byte[] png = renderer.DrawPng(elements, 101.6, 152.4, 8);
 
             using var bitmap = SKBitmap.Decode(png);
@@ -108,7 +108,7 @@ namespace BinaryKits.Zpl.Viewer.UnitTest
             var analyzer = new ZplAnalyzer(storage);
             var elements = analyzer.Analyze(BarcodeZpl).LabelInfos[0].ZplElements;
 
-            var renderer = new SkiaGeometryRenderer(storage, new DrawerOptions { OpaqueBackground = true });
+            var renderer = new GeometryRenderer(storage, new DrawerOptions { OpaqueBackground = true });
             byte[] png = renderer.DrawPng(elements, 101.6, 152.4, 8);
 
             using var bitmap = SKBitmap.Decode(png);
@@ -140,7 +140,7 @@ namespace BinaryKits.Zpl.Viewer.UnitTest
             var analyzer = new ZplAnalyzer(storage);
             var elements = analyzer.Analyze(TextZpl).LabelInfos[0].ZplElements;
 
-            var renderer = new SkiaGeometryRenderer(storage, new DrawerOptions { OpaqueBackground = true });
+            var renderer = new GeometryRenderer(storage, new DrawerOptions { OpaqueBackground = true });
             byte[] png = renderer.DrawPng(elements, 101.6, 152.4, 8);
 
             using var bitmap = SKBitmap.Decode(png);
@@ -166,7 +166,7 @@ namespace BinaryKits.Zpl.Viewer.UnitTest
             var analyzer = new ZplAnalyzer(storage);
             var elements = analyzer.Analyze(MaxiCodeZpl).LabelInfos[0].ZplElements;
 
-            var renderer = new SkiaGeometryRenderer(storage, new DrawerOptions { OpaqueBackground = true });
+            var renderer = new GeometryRenderer(storage, new DrawerOptions { OpaqueBackground = true });
             byte[] png = renderer.DrawPng(elements, 101.6, 152.4, 8);
 
             using var bitmap = SKBitmap.Decode(png);
@@ -196,7 +196,7 @@ namespace BinaryKits.Zpl.Viewer.UnitTest
             var analyzer = new ZplAnalyzer(storage);
             var elements = analyzer.Analyze(PdfZpl).LabelInfos[0].ZplElements;
 
-            var renderer = new SkiaGeometryRenderer(storage, new DrawerOptions { OpaqueBackground = true });
+            var renderer = new GeometryRenderer(storage, new DrawerOptions { OpaqueBackground = true });
             byte[] geomPdf = renderer.DrawPdf(elements, 101.6, 152.4, 8);
 
             string geom = System.Text.Encoding.Latin1.GetString(geomPdf);
@@ -233,7 +233,7 @@ namespace BinaryKits.Zpl.Viewer.UnitTest
             var elements = analyzer.Analyze(EllipseReverseZpl).LabelInfos[0].ZplElements;
 
             var options = new DrawerOptions(new FontManager()) { OpaqueBackground = true };
-            byte[] geomPng = new SkiaGeometryRenderer(storage, options).DrawPng(elements, 101.6, 152.4, 8);
+            byte[] geomPng = new GeometryRenderer(storage, options).DrawPng(elements, 101.6, 152.4, 8);
             byte[] legacyPng = new ZplElementDrawer(storage, options).Draw(elements, 101.6, 152.4, 8);
 
             using var g = SKBitmap.Decode(geomPng);
@@ -272,7 +272,7 @@ namespace BinaryKits.Zpl.Viewer.UnitTest
                 RibbonColor = SKColors.Red,
                 LabelColor = SKColors.Yellow,
             };
-            byte[] png = new SkiaGeometryRenderer(storage, options).DrawPng(elements, 101.6, 152.4, 8);
+            byte[] png = new GeometryRenderer(storage, options).DrawPng(elements, 101.6, 152.4, 8);
 
             using var bmp = SKBitmap.Decode(png);
             Assert.AreEqual(SKColors.Yellow, bmp.GetPixel(700, 1100), "background should be the stock colour");
@@ -302,7 +302,7 @@ namespace BinaryKits.Zpl.Viewer.UnitTest
                 RibbonColor = SKColors.Red,
                 LabelColor = SKColors.White,
             };
-            byte[] png = new SkiaGeometryRenderer(storage, options).DrawPng(elements, 54, 86, 8);
+            byte[] png = new GeometryRenderer(storage, options).DrawPng(elements, 54, 86, 8);
 
             using var bmp = SKBitmap.Decode(png);
             int black = 0, red = 0;
@@ -339,7 +339,7 @@ namespace BinaryKits.Zpl.Viewer.UnitTest
                 RibbonColor = SKColors.Red,
                 LabelColor = SKColors.Transparent,   // genuinely transparent stock -> net-ink mode
             };
-            var renderer = new SkiaGeometryRenderer(storage, options);
+            var renderer = new GeometryRenderer(storage, options);
             byte[] png = renderer.DrawPng(elements, 101.6, 152.4, 8);
 
             using var bmp = SKBitmap.Decode(png);
@@ -381,7 +381,7 @@ namespace BinaryKits.Zpl.Viewer.UnitTest
             IPrinterStorage storage = new PrinterStorage();
             var elements = new ZplAnalyzer(storage).Analyze(zpl).LabelInfos[0].ZplElements;
             var options = new DrawerOptions(new FontManager()) { OpaqueBackground = true };
-            byte[] png = new SkiaGeometryRenderer(storage, options).DrawPng(elements, 50, 50, 8);
+            byte[] png = new GeometryRenderer(storage, options).DrawPng(elements, 50, 50, 8);
 
             using var bmp = SKBitmap.Decode(png);
             // Box spans dots x20..280, y20..280; scan the interior with a margin to avoid antialiased edges.
@@ -416,9 +416,9 @@ namespace BinaryKits.Zpl.Viewer.UnitTest
             IPrinterStorage storage = new PrinterStorage();
             var elements = new ZplAnalyzer(storage).Analyze(zpl).LabelInfos[0].ZplElements;
 
-            byte[] opaquePng = new SkiaGeometryRenderer(storage, new DrawerOptions(new FontManager()) { OpaqueBackground = true })
+            byte[] opaquePng = new GeometryRenderer(storage, new DrawerOptions(new FontManager()) { OpaqueBackground = true })
                 .DrawPng(elements, width, height, 8);
-            byte[] transpPng = new SkiaGeometryRenderer(storage, new DrawerOptions(new FontManager()) { LabelColor = SKColors.Transparent })
+            byte[] transpPng = new GeometryRenderer(storage, new DrawerOptions(new FontManager()) { LabelColor = SKColors.Transparent })
                 .DrawPng(elements, width, height, 8);
 
             using var opaque = SKBitmap.Decode(opaquePng);

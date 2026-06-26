@@ -152,6 +152,6 @@ namespace BinaryKits.Zpl.Viewer.Geometry.ElementDrawers
         }
 
         private static SKPath Annulus(SKPoint center, double outerRadius, double innerRadius)
-            => SkPathOps.MakeEllipseRing(center, (float)outerRadius, (float)outerRadius, (float)innerRadius, (float)innerRadius);
+            => PathOps.MakeEllipseRing(center, (float)outerRadius, (float)outerRadius, (float)innerRadius, (float)innerRadius);
     }
 }

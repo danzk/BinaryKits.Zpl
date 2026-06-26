@@ -1,9 +1,9 @@
-using SkiaSharp;
+﻿using SkiaSharp;
 
 namespace BinaryKits.Zpl.Viewer.Geometry
 {
     /// <summary>
-    /// Appearance and mode for rendering a (mode-agnostic) <see cref="SkLabelDrawing"/> onto a canvas.
+    /// Appearance and mode for rendering a (mode-agnostic) <see cref="LabelDrawing"/> onto a canvas.
     /// The display list itself carries no colour or mode, so one built label can be rendered with
     /// different settings — black-on-white, a coloured ribbon/stock, or a transparent stock — without
     /// rebuilding.

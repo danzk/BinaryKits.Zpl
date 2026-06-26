@@ -82,7 +82,7 @@ namespace BinaryKits.Zpl.Viewer.WebApi.Controllers
 
             var drawer = new ZplElementDrawer(printerStorage, drawerOptions);
             // Geometry-first renderer: always used for PDF (vector output), optionally for PNG.
-            var geomDrawer = new SkiaGeometryRenderer(printerStorage, drawerOptions);
+            var geomDrawer = new GeometryRenderer(printerStorage, drawerOptions);
 
             var analyzer = new ZplAnalyzer(printerStorage);
             var analyzeInfo = analyzer.Analyze(request.ZplData);
