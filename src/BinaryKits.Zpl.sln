@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BinaryKits.Zpl.Viewer.UnitT
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BinaryKits.Zpl.Analyzer", "BinaryKits.Zpl.Analyzer\BinaryKits.Zpl.Analyzer.csproj", "{350AA774-02AB-41F1-8397-E88A9E0D19E3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BinaryKits.Zpl.Viewer.Benchmark", "BinaryKits.Zpl.Viewer.Benchmark\BinaryKits.Zpl.Viewer.Benchmark.csproj", "{9BCCCA5E-A6F8-4E2B-B85E-E923D42481D2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -153,6 +155,18 @@ Global
 		{350AA774-02AB-41F1-8397-E88A9E0D19E3}.Release|x64.Build.0 = Release|Any CPU
 		{350AA774-02AB-41F1-8397-E88A9E0D19E3}.Release|x86.ActiveCfg = Release|Any CPU
 		{350AA774-02AB-41F1-8397-E88A9E0D19E3}.Release|x86.Build.0 = Release|Any CPU
+		{9BCCCA5E-A6F8-4E2B-B85E-E923D42481D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9BCCCA5E-A6F8-4E2B-B85E-E923D42481D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9BCCCA5E-A6F8-4E2B-B85E-E923D42481D2}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9BCCCA5E-A6F8-4E2B-B85E-E923D42481D2}.Debug|x64.Build.0 = Debug|Any CPU
+		{9BCCCA5E-A6F8-4E2B-B85E-E923D42481D2}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9BCCCA5E-A6F8-4E2B-B85E-E923D42481D2}.Debug|x86.Build.0 = Debug|Any CPU
+		{9BCCCA5E-A6F8-4E2B-B85E-E923D42481D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9BCCCA5E-A6F8-4E2B-B85E-E923D42481D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9BCCCA5E-A6F8-4E2B-B85E-E923D42481D2}.Release|x64.ActiveCfg = Release|Any CPU
+		{9BCCCA5E-A6F8-4E2B-B85E-E923D42481D2}.Release|x64.Build.0 = Release|Any CPU
+		{9BCCCA5E-A6F8-4E2B-B85E-E923D42481D2}.Release|x86.ActiveCfg = Release|Any CPU
+		{9BCCCA5E-A6F8-4E2B-B85E-E923D42481D2}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

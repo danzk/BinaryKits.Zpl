@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>BinaryKits.Zpl.Viewer.Benchmark</AssemblyName>
+    <RootNamespace>BinaryKits.Zpl.Viewer.Benchmark</RootNamespace>
+    <!-- BenchmarkDotNet spawns an optimized Release process per run; suppress the "running in non-optimized"
+         guard only matters in Debug, which BenchmarkSwitcher already rejects. -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BinaryKits.Zpl.Viewer\BinaryKits.Zpl.Viewer.csproj" />
+  </ItemGroup>
+
+  <!-- The shared sample-label corpus, copied next to the benchmark so it can load labels by name. -->
+  <ItemGroup>
+    <Content Include="..\BinaryKits.Zpl.Viewer.WebApi\Labels\**\*.zpl2" Link="Labels\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
+  </ItemGroup>
+
+</Project>
