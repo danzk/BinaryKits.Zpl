@@ -1,4 +1,6 @@
+using System;
 using System.IO;
+using System.Linq;
 
 using BinaryKits.Zpl.Analyzer;
 using BinaryKits.Zpl.Viewer.ElementDrawers;
@@ -247,6 +249,175 @@ namespace BinaryKits.Zpl.Viewer.UnitTest
             Directory.CreateDirectory(outDir);
             File.WriteAllBytes(Path.Combine(outDir, "ellipse-reverse-geometry.png"), geomPng);
             File.WriteAllBytes(Path.Combine(outDir, "ellipse-reverse-legacy.png"), legacyPng);
+        }
+
+        private const string ColorZpl =
+            "^XA" +
+            "^FO40,40^A0N,60,60^FDRibbon on Stock^FS" +    // text -> ribbon
+            "^FO40,140^BY3^BCN,80,N,N,N^FD123456^FS" +     // barcode -> ribbon
+            "^FO40,300^GB320,90,90^FS" +                    // solid bar -> ribbon
+            "^FO70,325^A0N,50,50^FR^FDSALE^FS" +           // reverse text -> stock (knockout)
+            "^XZ";
+
+        [TestMethod]
+        public void DrawPng_RibbonAndStockColors_Recolor()
+        {
+            IPrinterStorage storage = new PrinterStorage();
+            var analyzer = new ZplAnalyzer(storage);
+            var elements = analyzer.Analyze(ColorZpl).LabelInfos[0].ZplElements;
+
+            var options = new DrawerOptions(new FontManager())
+            {
+                OpaqueBackground = true,
+                RibbonColor = SKColors.Red,
+                LabelColor = SKColors.Yellow,
+            };
+            byte[] png = new SkiaGeometryRenderer(storage, options).DrawPng(elements, 101.6, 152.4, 8);
+
+            using var bmp = SKBitmap.Decode(png);
+            Assert.AreEqual(SKColors.Yellow, bmp.GetPixel(700, 1100), "background should be the stock colour");
+            Assert.AreEqual(SKColors.Red, bmp.GetPixel(50, 385), "bar ink should be the ribbon colour");
+
+            var outDir = Path.Combine(Path.GetTempPath(), "GeometryRenderTests");
+            Directory.CreateDirectory(outDir);
+            File.WriteAllBytes(Path.Combine(outDir, "colors-geometry.png"), png);
+        }
+
+        [TestMethod]
+        public void DrawPng_RibbonColor_TintsRasterImages()
+        {
+            string path = Path.Combine(AppContext.BaseDirectory, "Labels", "Test", "GraphicField-54x86.zpl2");
+            if (!File.Exists(path))
+            {
+                Assert.Inconclusive("corpus image label not found");
+            }
+
+            IPrinterStorage storage = new PrinterStorage();
+            var analyzer = new ZplAnalyzer(storage);
+            var elements = analyzer.Analyze(File.ReadAllText(path)).LabelInfos[0].ZplElements;
+
+            var options = new DrawerOptions(new FontManager())
+            {
+                OpaqueBackground = true,
+                RibbonColor = SKColors.Red,
+                LabelColor = SKColors.White,
+            };
+            byte[] png = new SkiaGeometryRenderer(storage, options).DrawPng(elements, 54, 86, 8);
+
+            using var bmp = SKBitmap.Decode(png);
+            int black = 0, red = 0;
+            foreach (SKColor c in bmp.Pixels)
+            {
+                if (c.Red < 40 && c.Green < 40 && c.Blue < 40) black++;
+                if (c.Red > 200 && c.Green < 60 && c.Blue < 60) red++;
+            }
+
+            Assert.AreEqual(0, black, "no pure-black ink should remain when the ribbon is red");
+            Assert.IsTrue(red > 0, "raster-graphic ink should be tinted to the ribbon colour");
+
+            var outDir = Path.Combine(Path.GetTempPath(), "GeometryRenderTests");
+            Directory.CreateDirectory(outDir);
+            File.WriteAllBytes(Path.Combine(outDir, "image-red-ribbon.png"), png);
+        }
+
+        private const string TransparentZpl =
+            "^XA" +
+            "^FO40,40^GB300,120,120^FS" +              // solid bar -> ribbon ink
+            "^FO120,60^FR^GB120,60,60^FS" +            // reverse solid box -> transparent knockout
+            "^FO40,220^BY3^BCN,90,N,N,N^FD123456^FS" + // barcode -> additive fold, gaps transparent
+            "^XZ";
+
+        [TestMethod]
+        public void DrawPng_TransparentStock_InkOpaque_RestTransparent()
+        {
+            IPrinterStorage storage = new PrinterStorage();
+            var analyzer = new ZplAnalyzer(storage);
+            var elements = analyzer.Analyze(TransparentZpl).LabelInfos[0].ZplElements;
+
+            var options = new DrawerOptions(new FontManager())
+            {
+                RibbonColor = SKColors.Red,
+                LabelColor = SKColors.Transparent,   // genuinely transparent stock -> net-ink mode
+            };
+            var renderer = new SkiaGeometryRenderer(storage, options);
+            byte[] png = renderer.DrawPng(elements, 101.6, 152.4, 8);
+
+            using var bmp = SKBitmap.Decode(png);
+            // Ink is opaque ribbon; knockout interior and background are genuine holes (alpha 0).
+            Assert.AreEqual(SKColors.Red, bmp.GetPixel(50, 150), "bar ink should be opaque ribbon");
+            Assert.AreEqual(0, bmp.GetPixel(180, 90).Alpha, "reverse knockout should be transparent");
+            Assert.AreEqual(0, bmp.GetPixel(700, 1100).Alpha, "background should be transparent");
+
+            // The PDF is a single net-ink fill -> still pure vector (no embedded raster).
+            byte[] pdf = renderer.DrawPdf(elements, 101.6, 152.4, 8);
+            string pdfStr = System.Text.Encoding.Latin1.GetString(pdf);
+            StringAssert.DoesNotMatch(pdfStr, new System.Text.RegularExpressions.Regex("/Subtype\\s*/Image"),
+                "transparent-stock PDF should be pure vector");
+
+            var outDir = Path.Combine(Path.GetTempPath(), "GeometryRenderTests");
+            Directory.CreateDirectory(outDir);
+            File.WriteAllBytes(Path.Combine(outDir, "transparent.png"), png);
+
+            // Composite over cyan so the holes are visible at a glance.
+            using var over = new SKBitmap(bmp.Width, bmp.Height);
+            using (var c = new SKCanvas(over))
+            {
+                c.Clear(SKColors.Cyan);
+                c.DrawBitmap(bmp, 0, 0);
+            }
+            using var overImg = SKImage.FromBitmap(over);
+            File.WriteAllBytes(Path.Combine(outDir, "transparent-over-cyan.png"), overImg.Encode(SKEncodedImageFormat.Png, 100).ToArray());
+        }
+
+        // The transparent net-ink fold must produce the same picture as the opaque painter's path: black ink on
+        // a white backdrop == transparent ink composited over white. Validates the per-element fold (and its
+        // draw ordering) on reverse-heavy real labels.
+        [DataTestMethod]
+        [DataRow("Example11-102x152", 102.0, 152.0)]
+        [DataRow("FieldReversePrint1-54x86", 54.0, 86.0)]
+        [DataRow("FieldReversePrint2-54x86", 54.0, 86.0)]
+        [DataRow("FieldReversePrint3-54x86", 54.0, 86.0)]
+        public void TransparentOverWhite_MatchesOpaque(string name, double width, double height)
+        {
+            string path = Directory.EnumerateFiles(Path.Combine(AppContext.BaseDirectory, "Labels"), name + ".zpl2", SearchOption.AllDirectories).First();
+            string zpl = File.ReadAllText(path);
+
+            IPrinterStorage storage = new PrinterStorage();
+            var elements = new ZplAnalyzer(storage).Analyze(zpl).LabelInfos[0].ZplElements;
+
+            byte[] opaquePng = new SkiaGeometryRenderer(storage, new DrawerOptions(new FontManager()) { OpaqueBackground = true })
+                .DrawPng(elements, width, height, 8);
+            byte[] transpPng = new SkiaGeometryRenderer(storage, new DrawerOptions(new FontManager()) { LabelColor = SKColors.Transparent })
+                .DrawPng(elements, width, height, 8);
+
+            using var opaque = SKBitmap.Decode(opaquePng);
+            using var transp = SKBitmap.Decode(transpPng);
+            using var transpOnWhite = new SKBitmap(transp.Width, transp.Height);
+            using (var c = new SKCanvas(transpOnWhite))
+            {
+                c.Clear(SKColors.White);
+                c.DrawBitmap(transp, 0, 0);
+            }
+
+            SKColor[] a = opaque.Pixels, b = transpOnWhite.Pixels;
+            long match = 0;
+            for (int i = 0; i < a.Length; i++)
+            {
+                if ((a[i].Red < 128) == (b[i].Red < 128)) match++;
+            }
+
+            double agreement = (double)match / a.Length;
+            Assert.IsTrue(agreement >= 0.99, $"{name}: transparent-over-white vs opaque ink agreement {agreement:P3}");
+
+            if (name.StartsWith("Example11"))
+            {
+                using var overCyan = new SKBitmap(transp.Width, transp.Height);
+                using (var c = new SKCanvas(overCyan)) { c.Clear(SKColors.Cyan); c.DrawBitmap(transp, 0, 0); }
+                using var img = SKImage.FromBitmap(overCyan);
+                var outDir = Path.Combine(Path.GetTempPath(), "GeometryRenderTests");
+                Directory.CreateDirectory(outDir);
+                File.WriteAllBytes(Path.Combine(outDir, "example11-transparent-over-cyan.png"), img.Encode(SKEncodedImageFormat.Png, 100).ToArray());
+            }
         }
     }
 }

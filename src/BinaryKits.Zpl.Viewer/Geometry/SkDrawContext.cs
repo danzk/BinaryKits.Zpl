@@ -120,7 +120,7 @@ namespace BinaryKits.Zpl.Viewer.Geometry
             else
             {
                 // Accumulate sub-paths into one flat path under non-zero (Winding) fill — the painter's
-                // replay and the ^FR boolean step both consume one combined fill per element.
+                // render and the ^FR boolean step both consume one combined fill per element.
                 result = new SKPath { FillType = SKPathFillType.Winding };
                 foreach (SKPath p in parts)
                 {

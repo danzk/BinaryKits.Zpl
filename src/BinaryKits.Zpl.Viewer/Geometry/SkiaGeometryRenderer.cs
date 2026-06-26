@@ -18,7 +18,7 @@ namespace BinaryKits.Zpl.Viewer.Geometry
     /// <summary>
     /// Geometry-first ZPL renderer over <see cref="SKPath"/>. Builds the label as an ordered display list
     /// (<see cref="SkLabelDrawing"/>) and
-    /// replays it onto either a raster <c>SKSurface</c> (PNG) or an <c>SKDocument</c> page (vector PDF).
+    /// renders it onto either a raster <c>SKSurface</c> (PNG) or an <c>SKDocument</c> page (vector PDF).
     /// Because every element is filled geometry, the PDF stays crisp vector — there is no
     /// <c>SKBlendMode.Xor</c> / <c>FixPdfInvertDraw</c> rasterisation.
     ///
@@ -80,8 +80,12 @@ namespace BinaryKits.Zpl.Viewer.Geometry
         {
             (int width, int height) = LabelSize(labelWidth, labelHeight, printDensityDpmm);
             List<SkLabelOp> ops = BuildContent(elements, width, height, printDensityDpmm);
-            return new SkLabelDrawing(width, height, ops, _options.OpaqueBackground, _options.Antialias);
+            return new SkLabelDrawing(width, height, ops);
         }
+
+        /// <summary>The appearance/mode for rendering, derived from the drawer options.</summary>
+        private RenderSettings BuildRenderSettings()
+            => new RenderSettings(_options.RibbonColor, _options.LabelColor, _options.OpaqueBackground, _options.Antialias);
 
         /// <summary>
         /// Rasterise the label to a PNG (or the configured <see cref="DrawerOptions.RenderFormat"/>) byte
@@ -112,7 +116,7 @@ namespace BinaryKits.Zpl.Viewer.Geometry
                     canvas.Scale(scale);
                 }
 
-                label.Replay(canvas);
+                label.Render(canvas, BuildRenderSettings());
                 canvas.Flush();
 
                 using (SKImage image = surface.Snapshot())
@@ -151,13 +155,74 @@ namespace BinaryKits.Zpl.Viewer.Geometry
                 {
                     SKCanvas pdfCanvas = document.BeginPage(pageWidthPt, pageHeightPt);
                     pdfCanvas.Scale(dotToPoint);   // dot grid -> points
-                    label.Replay(pdfCanvas);
+                    label.Render(pdfCanvas, BuildRenderSettings());
                     document.EndPage();
                     document.Close();
                 }
 
                 return ms.ToArray();
             }
+        }
+
+        /// <summary>
+        /// Render the label to a <b>vector</b> SVG via <see cref="SKSvgCanvas"/>, reusing the same built
+        /// op-list and unified render path as <see cref="DrawPng"/> / <see cref="DrawPdf"/>. Every black/white
+        /// element — text included, since glyphs are outline paths — serialises as a filled <c>&lt;path&gt;</c>,
+        /// so the SVG is fully scalable; only genuine <c>^GF</c>/<c>^XG</c>/<c>^IM</c> raster images embed (as
+        /// <c>&lt;image&gt;</c> data URIs). <c>^FR</c> reverse holes are filled-path geometry (no blend mode),
+        /// so they survive as real vector cut-outs.
+        ///
+        /// <para>Coordinates are the dot grid (1 dot = 1 SVG user unit), so the document's width/height/viewBox
+        /// are in dots. Scale on the consumer side for a physical print size.</para>
+        /// </summary>
+        public byte[] DrawSvg(
+            IEnumerable<ZplElementBase> elements,
+            double labelWidth = 101.6,
+            double labelHeight = 152.4,
+            int printDensityDpmm = 8)
+        {
+            SkLabelDrawing label = CreateLabelDrawing(elements, labelWidth, labelHeight, printDensityDpmm);
+
+            using (var stream = new SKDynamicMemoryWStream())
+            {
+                // The SVG is finalised (closing </svg> written) when the canvas is disposed, so read the
+                // stream only after the inner using block closes it.
+                using (SKCanvas canvas = SKSvgCanvas.Create(SKRect.Create(label.Width, label.Height), stream))
+                {
+                    label.Render(canvas, BuildRenderSettings());
+                }
+
+                using (SKData data = stream.DetachAsData())
+                {
+                    return AddViewBox(data.ToArray(), label.Width, label.Height);
+                }
+            }
+        }
+
+        /// <summary>
+        /// <see cref="SKSvgCanvas"/> writes <c>&lt;svg … width="W" height="H"&gt;</c> with no <c>viewBox</c>, so
+        /// the document has a fixed pixel size and won't scale to its container. Insert a <c>viewBox</c> spanning
+        /// the dot grid (keeping the px intrinsic size) so consumers can scale the SVG freely while preserving
+        /// the coordinate system and aspect ratio.
+        /// </summary>
+        private static byte[] AddViewBox(byte[] svgBytes, int width, int height)
+        {
+            string svg = System.Text.Encoding.UTF8.GetString(svgBytes);
+
+            int open = svg.IndexOf("<svg", StringComparison.Ordinal);
+            if (open < 0)
+            {
+                return svgBytes;
+            }
+
+            int close = svg.IndexOf('>', open);
+            if (close < 0 || svg.IndexOf("viewBox", open, close - open, StringComparison.Ordinal) >= 0)
+            {
+                return svgBytes;   // malformed, or a future Skia already emits a viewBox — leave it alone
+            }
+
+            svg = svg.Insert(close, $" viewBox=\"0 0 {width} {height}\"");
+            return System.Text.Encoding.UTF8.GetBytes(svg);
         }
 
         /// <summary>Render both outputs from one built label: <c>[0]</c> PNG, <c>[1]</c> vector PDF.</summary>
@@ -168,7 +233,7 @@ namespace BinaryKits.Zpl.Viewer.Geometry
             int printDensityDpmm = 8,
             int scale = 1)
         {
-            // Build once; replay onto each surface. (Two CreateLabelDrawing calls would re-run the drawer
+            // Build once; render onto each surface. (Two CreateLabelDrawing calls would re-run the drawer
             // pipeline; element drawers are stateless per render, but we keep this explicit and cheap.)
             return new List<byte[]>
             {

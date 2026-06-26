@@ -5,7 +5,7 @@ namespace BinaryKits.Zpl.Viewer.Geometry
     /// <summary>
     /// Produces text as filled <see cref="SKPath"/> geometry positioned at a baseline origin. Each glyph
     /// outline comes from <see cref="SKFont.GetGlyphPath(ushort)"/>, offset by the running per-glyph advance
-    /// from <see cref="SKFont.GetGlyphWidths(System.ReadOnlySpan{ushort})"/> — the font design advances (NOT
+    /// from <c>SKFont.GetGlyphWidths</c> — the font design advances (NOT
     /// HarfBuzz shaping), matching the legacy text drawers' positioning.
     ///
     /// <para>Building text as geometry (rather than <c>DrawText</c>) is what lets <c>^FR</c> boolean-compose

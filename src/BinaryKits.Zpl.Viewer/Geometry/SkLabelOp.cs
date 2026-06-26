@@ -4,7 +4,7 @@ namespace BinaryKits.Zpl.Viewer.Geometry
 {
     /// <summary>
     /// One entry in a <see cref="SkLabelDrawing"/>'s display list: either a geometry fill (black or
-    /// white) or an image draw. Replayed in document order, which reproduces ZPL compositing by the
+    /// white) or an image draw. Rendered in document order, which reproduces ZPL compositing by the
     /// painter's algorithm — black over black unions visually, white over black erases, images layer in
     /// order — with no boolean geometry ops.
     /// </summary>

@@ -51,6 +51,18 @@ namespace BinaryKits.Zpl.Viewer.ElementDrawers
         /// </summary>
         public bool UseGeometryRenderer { get; set; } = false;
 
+        /// <summary>
+        /// The "ink" colour — i.e. the printer ribbon. Foreground geometry (and the ink in raster graphics)
+        /// is drawn in this colour. Honoured by the geometry renderer only; defaults to black.
+        /// </summary>
+        public SKColor RibbonColor { get; set; } = SKColors.Black;
+
+        /// <summary>
+        /// The label stock / media colour. Used for the (opaque) background, Field-Reverse knockouts, and
+        /// the unprinted areas of raster graphics. Honoured by the geometry renderer only; defaults to white.
+        /// </summary>
+        public SKColor LabelColor { get; set; } = SKColors.White;
+
         public FontManager FontManager { get; private set; }
 
         public DrawerOptions() : this(new FontManager()) { }
