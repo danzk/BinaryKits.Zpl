@@ -61,6 +61,19 @@ namespace BinaryKits.Zpl.Viewer.WebApi.Controllers
 
             drawerOptions.OpaqueBackground = true; //set white background for viewer requests
 
+            //Geometry-renderer appearance options (honoured by the geometry renderer; PDF always uses it).
+            drawerOptions.UseGeometryRenderer = request.UseGeometryRenderer;
+            SKColor? ribbon = ParseColor(request.RibbonColor);
+            if (ribbon.HasValue)
+            {
+                drawerOptions.RibbonColor = ribbon.Value;
+            }
+            SKColor? stock = ParseColor(request.LabelColor);
+            if (stock.HasValue)
+            {
+                drawerOptions.LabelColor = stock.Value;
+            }
+
             //PDF mode (image mode is default)
             if (request.Type == "PDF")
             {
@@ -76,6 +89,7 @@ namespace BinaryKits.Zpl.Viewer.WebApi.Controllers
 
             var labels = new List<RenderLabelDto>();
             var pdfs = new List<RenderLabelDto>();
+            var svgs = new List<RenderLabelDto>();
             foreach (var labelInfo in analyzeInfo.LabelInfos)
             {
                 if (request.Type == "image" || request.Type == "both")
@@ -98,16 +112,44 @@ namespace BinaryKits.Zpl.Viewer.WebApi.Controllers
                         PdfBase64 = Convert.ToBase64String(pdfData)
                     });
                 }
+
+                if (request.Type == "SVG")
+                {
+                    // Vector SVG via the geometry renderer (outline-path text, vector barcodes/reverse; only
+                    // genuine ^GF/^XG/^IM raster images embed).
+                    var svgData = geomDrawer.DrawSvg(labelInfo.ZplElements, request.LabelWidth, request.LabelHeight, request.PrintDensityDpmm);
+                    svgs.Add(new RenderLabelDto
+                    {
+                        SvgBase64 = Convert.ToBase64String(svgData)
+                    });
+                }
             }
 
             var response = new RenderResponseDto
             {
                 Labels = labels.ToArray(),
                 Pdfs = pdfs.ToArray(),
+                Svgs = svgs.ToArray(),
                 NonSupportedCommands = analyzeInfo.UnknownCommands
             };
 
             return this.StatusCode(StatusCodes.Status200OK, response);
+        }
+
+        /// <summary>Parse a hex colour string (e.g. "#FF0000", "#80FFFF00") or "transparent"; null if blank/invalid.</summary>
+        private static SKColor? ParseColor(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return null;
+            }
+
+            if (value.Trim().Equals("transparent", StringComparison.OrdinalIgnoreCase))
+            {
+                return SKColors.Transparent;
+            }
+
+            return SKColor.TryParse(value, out SKColor color) ? color : (SKColor?)null;
         }
     }
 }

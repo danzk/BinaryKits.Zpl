@@ -67,11 +67,19 @@
                     <input type="text" v-model.number="labelHeight" style="width: 50px" /> mm ({{labelHeightInch}} inches)
                     <input type="text" v-model.number="printDensityDpmm" style="width: 40px" /> dpmm ({{dpi}} dpi)<br />
                 </div>
+                <div class="mt-1 mb-2 small d-flex flex-wrap align-items-center gap-3">
+                    <label class="mb-0">Ribbon <input type="color" v-model="ribbonColor" @change="render" /></label>
+                    <label class="mb-0">Stock <input type="color" v-model="stockColor" :disabled="transparentStock" @change="render" /></label>
+                    <label class="mb-0"><input type="checkbox" v-model="transparentStock" @change="render" /> Transparent stock</label>
+                    <label class="mb-0"><input type="checkbox" v-model="useGeometryRenderer" @change="render" /> Geometry renderer (PNG)</label>
+                    <label class="mb-0"><input type="checkbox" v-model="previewSvg" @change="render" /> Preview as SVG (vector)</label>
+                </div>
                 <div class="d-flex gap-2">
                     <button type="button" class="btn btn-primary" @click="render">Render</button>
                     <button type="button" class="btn btn-secondary" @click="downloadZpl">Download ZPL</button>
                     <button type="button" class="btn btn-secondary" @click="downloadPng">Download PNG</button>
                     <button type="button" class="btn btn-secondary" @click="downloadPDF">Download PDF</button>
+                    <button type="button" class="btn btn-secondary" @click="downloadSvg">Download SVG</button>
                 </div>
                 <div>
                     <hr />
@@ -91,9 +99,16 @@
                 </div>
                 <div v-else class="position-relative">
                     <div v-if="renderResponse" class="position-absolute">
-                        <div v-for="(labelInfo, index) in renderResponse.labels" :key="index">
-                            <img :src="`data:image/png;base64,${labelInfo.imageBase64}`" class="img-fluid" style="border:1px solid #ccc" />
-                        </div>
+                        <template v-if="renderResponse.svgs && renderResponse.svgs.length">
+                            <div v-for="(svgInfo, index) in renderResponse.svgs" :key="'svg'+index">
+                                <img :src="`data:image/svg+xml;base64,${svgInfo.svgBase64}`" class="img-fluid checker" style="border:1px solid #ccc" />
+                            </div>
+                        </template>
+                        <template v-else>
+                            <div v-for="(labelInfo, index) in renderResponse.labels" :key="index">
+                                <img :src="`data:image/png;base64,${labelInfo.imageBase64}`" class="img-fluid checker" style="border:1px solid #ccc" />
+                            </div>
+                        </template>
                         <div v-if="renderResponse.nonSupportedCommands.length > 0" class="alert alert-warning mt-1" role="alert">
                             <h4>Non-supported commands</h4>
                             <ul>
@@ -120,6 +135,16 @@
     <style>
         .list-group-item {
             padding: 4px;
+        }
+        /* checkerboard so a transparent-stock label's holes are visible behind the preview */
+        .checker {
+            background-image:
+                linear-gradient(45deg, #ddd 25%, transparent 25%),
+                linear-gradient(-45deg, #ddd 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #ddd 75%),
+                linear-gradient(-45deg, transparent 75%, #ddd 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0;
         }
     </style>
 
@@ -152,7 +177,12 @@
                         }
                     ],
                     showLabelaryOverlay: false,
-                    overlayResponse: null
+                    overlayResponse: null,
+                    ribbonColor: '#000000',
+                    stockColor: '#ffffff',
+                    transparentStock: false,
+                    useGeometryRenderer: true,
+                    previewSvg: false
                 }
             },
             computed: {
@@ -164,6 +194,9 @@
                 },
                 dpi() {
                     return (Math.round(this.printDensityDpmm * this.inch2mm))
+                },
+                labelColorPayload() {
+                    return this.transparentStock ? 'transparent' : this.stockColor
                 }
             },
             async created() {
@@ -216,7 +249,11 @@
                             zplData: this.zplData,
                             printDensityDpmm: this.printDensityDpmm,
                             labelWidth: this.labelWidth,
-                            labelHeight: this.labelHeight
+                            labelHeight: this.labelHeight,
+                            type: this.previewSvg ? 'SVG' : 'image',
+                            useGeometryRenderer: this.useGeometryRenderer,
+                            ribbonColor: this.ribbonColor,
+                            labelColor: this.labelColorPayload
                         }
                         const response = await axios.post('api/v1/viewer', payload)
                         this.renderResponse = response.data
@@ -236,7 +273,9 @@
                             printDensityDpmm: this.printDensityDpmm,
                             labelWidth: this.labelWidth,
                             labelHeight: this.labelHeight,
-                            type: 'PDF'
+                            type: 'PDF',
+                            ribbonColor: this.ribbonColor,
+                            labelColor: this.labelColorPayload
                         }
                         const response = await axios.post('api/v1/viewer', payload)
 
@@ -244,6 +283,37 @@
                             var element = document.createElement('a');
                             element.setAttribute('href', 'data:application/pdf;base64,' + labelInfo.pdfBase64);
                             element.setAttribute('download', 'label-'+ index +'.pdf');
+
+                            element.style.display = 'none';
+                            document.body.appendChild(element);
+
+                            element.click();
+
+                            document.body.removeChild(element);
+                        });
+                    } catch(error) {
+                        this.renderError = error.response.data
+                        console.error(this.renderError)
+                    }
+                },
+                async downloadSvg() {
+                    this.renderError = null
+                    try {
+                        const payload = {
+                            zplData: this.zplData,
+                            printDensityDpmm: this.printDensityDpmm,
+                            labelWidth: this.labelWidth,
+                            labelHeight: this.labelHeight,
+                            type: 'SVG',
+                            ribbonColor: this.ribbonColor,
+                            labelColor: this.labelColorPayload
+                        }
+                        const response = await axios.post('api/v1/viewer', payload)
+
+                        response.data.svgs.forEach(function (labelInfo, index) {
+                            var element = document.createElement('a');
+                            element.setAttribute('href', 'data:image/svg+xml;base64,' + labelInfo.svgBase64);
+                            element.setAttribute('download', 'label-'+ index +'.svg');
 
                             element.style.display = 'none';
                             document.body.appendChild(element);

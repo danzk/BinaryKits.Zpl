@@ -5,5 +5,6 @@
         public string[] NonSupportedCommands { get; set; }
         public RenderLabelDto[] Labels { get; set; }
         public RenderLabelDto[] Pdfs { get; set; }
+        public RenderLabelDto[] Svgs { get; set; }
     }
 }
