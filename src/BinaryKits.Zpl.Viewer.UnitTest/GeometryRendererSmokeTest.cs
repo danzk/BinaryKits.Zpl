@@ -369,6 +369,37 @@ namespace BinaryKits.Zpl.Viewer.UnitTest
             File.WriteAllBytes(Path.Combine(outDir, "transparent-over-cyan.png"), overImg.Encode(SKEncodedImageFormat.Png, 100).ToArray());
         }
 
+        // Regression for Example12 (text over a barcode/MaxiCode): a glyph with counters ("8") printed over a
+        // filled black box. The glyph and box are separate ops; if the net ink unions them into one winding
+        // path, the glyph's counters cancel the box to white holes. The painter's algorithm must keep the box
+        // interior solid black.
+        [TestMethod]
+        public void DrawPng_TextOverFilledBox_DoesNotWindingCancel()
+        {
+            const string zpl = "^XA^FO20,20^GB260,260,260^FS^FO70,40^A0N,200,160^FD8^FS^XZ";
+
+            IPrinterStorage storage = new PrinterStorage();
+            var elements = new ZplAnalyzer(storage).Analyze(zpl).LabelInfos[0].ZplElements;
+            var options = new DrawerOptions(new FontManager()) { OpaqueBackground = true };
+            byte[] png = new SkiaGeometryRenderer(storage, options).DrawPng(elements, 50, 50, 8);
+
+            using var bmp = SKBitmap.Decode(png);
+            // Box spans dots x20..280, y20..280; scan the interior with a margin to avoid antialiased edges.
+            int whiteInside = 0;
+            for (int y = 40; y <= 260; y++)
+            {
+                for (int x = 40; x <= 260; x++)
+                {
+                    if (bmp.GetPixel(x, y).Red > 200)
+                    {
+                        whiteInside++;
+                    }
+                }
+            }
+
+            Assert.AreEqual(0, whiteInside, $"{whiteInside} white pixels inside a solid black box — overlapping additive ink winding-cancelled");
+        }
+
         // The transparent net-ink fold must produce the same picture as the opaque painter's path: black ink on
         // a white backdrop == transparent ink composited over white. Validates the per-element fold (and its
         // draw ordering) on reverse-heavy real labels.

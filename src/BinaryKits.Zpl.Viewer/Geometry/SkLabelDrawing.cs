@@ -39,10 +39,10 @@ namespace BinaryKits.Zpl.Viewer.Geometry
         /// Render the label. A single path covers both opaque and transparent stock: clear the background to the
         /// stock/media colour when opaque (or to transparent when the background is not opaque, e.g. transparent
         /// stock), draw any raster graphics tinted so their media falls through to that background, then fill the
-        /// single net inked region (<see cref="BuildNetInk"/>) with the ribbon colour. Knockouts, gaps and
-        /// reverse holes are simply never inked, so they reveal the background — a true (vector) hole when it is
-        /// transparent, the stock colour when it is opaque. The painter's-order add/subtract/reverse compositing
-        /// is pre-folded into the net ink, so there is no separate "paint white over black" pass.
+        /// net inked region (<see cref="DrawNetInk"/>) with the ribbon colour. Knockouts, gaps and reverse holes
+        /// are simply never inked, so they reveal the background — a true (vector) hole when it is transparent,
+        /// the stock colour when it is opaque. The painter's-order add/subtract/reverse compositing is folded
+        /// into the net ink, so there is no separate "paint white over black" pass.
         /// </summary>
         public void Render(SKCanvas canvas, in RenderSettings settings)
         {
@@ -62,19 +62,9 @@ namespace BinaryKits.Zpl.Viewer.Geometry
                 }
             }
 
-            // The single net inked region, filled with the ribbon colour. Each segment keeps its own fill type
-            // so SKPath.Op's hole encoding is preserved (never force Winding here, or reverse holes fill back in).
             using (var paint = new SKPaint { Color = settings.Ribbon, IsAntialias = settings.Antialias, Style = SKPaintStyle.Fill })
             {
-                foreach (SKPath segment in BuildNetInk())
-                {
-                    if (!segment.IsEmpty)
-                    {
-                        canvas.DrawPath(segment, paint);
-                    }
-
-                    segment.Dispose();
-                }
+                DrawNetInk(canvas, paint);
             }
         }
 
@@ -95,20 +85,21 @@ namespace BinaryKits.Zpl.Viewer.Geometry
         }
 
         /// <summary>
-        /// Fold the geometry ops into the net inked region, returned as ordered paths to draw. Ink is kept at
-        /// per-element granularity: each ink op is a piece (its <c>op.Fill</c>, not owned). A white/reverse op is
-        /// <em>deferred</em> — appended (cheap <c>AddPath</c>) into the knockout accumulator of only the pieces
-        /// whose bounding box it overlaps. At the end, every piece a knockout touched pays a single
-        /// <see cref="SKPathOp.Difference"/> against its batched knockouts (since <c>A−w1−w2 = A−(w1∪w2)</c>) and
-        /// is returned in document order; all untouched pieces merge into one seamless additive path returned
-        /// last. So the boolean work is proportional to the few <em>knocked-out</em> elements, not the whole
-        /// label, and a purely additive label (e.g. a barcode) pays no boolean cost. Caller owns the paths.
+        /// Fill the net inked region onto <paramref name="canvas"/> in document order. Each ink op is drawn as
+        /// its <b>own</b> path, so overlapping ink from different ops composites by the painter's algorithm
+        /// (opaque ribbon over ribbon) and never winding-cancels — unlike unioning everything into one path,
+        /// where opposite-wound contours (e.g. text glyphs printed over barcode modules or a MaxiCode) would
+        /// punch false white holes.
         ///
-        /// <para>Drawing untouched ink last is safe: a piece a knockout never touched cannot overlap that
-        /// knockout's hole (it would have been subtracted), so it only ever overlaps solid ink (order-neutral)
-        /// or re-fills a hole it legitimately post-dates.</para>
+        /// <para>A white/reverse op is <em>deferred</em>: it accumulates (cheap <c>AddPath</c>) into the knockout
+        /// of only the earlier ink pieces whose bounding box it overlaps. Each knocked-out piece then pays a
+        /// single <see cref="SKPathOp.Difference"/> against its batched knockouts (since <c>A−w1−w2 = A−(w1∪w2)</c>)
+        /// before being drawn; a later piece re-inks an earlier knockout, matching painter's order. Untouched
+        /// ink draws straight from the op (no copy, no boolean) — only knocked-out ink allocates a temporary, so
+        /// the boolean work is proportional to the few knocked-out elements, and a purely additive label (e.g. a
+        /// barcode) pays none.</para>
         /// </summary>
-        private List<SKPath> BuildNetInk()
+        private void DrawNetInk(SKCanvas canvas, SKPaint paint)
         {
             var pieces = new List<SKPath>();        // op.Fill references (NOT owned)
             var pieceBounds = new List<SKRect>();
@@ -148,29 +139,29 @@ namespace BinaryKits.Zpl.Viewer.Geometry
                 }
             }
 
-            var result = new List<SKPath>();
-            SKPath additive = null;
             for (int i = 0; i < pieces.Count; i++)
             {
                 if (pieceKnockout[i] == null)
                 {
-                    additive ??= new SKPath { FillType = SKPathFillType.Winding };
-                    additive.AddPath(pieces[i]);
+                    if (!pieces[i].IsEmpty)
+                    {
+                        canvas.DrawPath(pieces[i], paint);   // op.Fill, drawn straight (not owned, not disposed)
+                    }
                 }
                 else
                 {
-                    SKPath diff = pieces[i].Op(pieceKnockout[i], SKPathOp.Difference);
-                    result.Add(diff ?? new SKPath(pieces[i]));   // owned (Op result, or a copy if Op failed)
+                    using (SKPath diff = pieces[i].Op(pieceKnockout[i], SKPathOp.Difference))
+                    {
+                        SKPath inked = diff ?? pieces[i];    // null Op result → fall back to the un-cut piece
+                        if (!inked.IsEmpty)
+                        {
+                            canvas.DrawPath(inked, paint);
+                        }
+                    }
+
                     pieceKnockout[i].Dispose();
                 }
             }
-
-            if (additive != null)
-            {
-                result.Add(additive);
-            }
-
-            return result;
         }
 
         /// <summary>Whether two axis-aligned rectangles overlap (strict — touching edges don't count).</summary>
