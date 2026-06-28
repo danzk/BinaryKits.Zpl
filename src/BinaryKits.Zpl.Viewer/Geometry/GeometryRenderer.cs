@@ -88,6 +88,26 @@ namespace BinaryKits.Zpl.Viewer.Geometry
             => new RenderSettings(_options.RibbonColor, _options.LabelColor, _options.OpaqueBackground, _options.Antialias);
 
         /// <summary>
+        /// Render the label straight onto a caller-provided <see cref="SKSurface"/> using the configured
+        /// appearance (ribbon/stock colour, opaque or transparent background) — no PNG round-trip, useful for
+        /// compositing or a live-preview control. The label is drawn at the dot grid (1 dot = 1 unit) from the
+        /// canvas's current transform, so apply a scale/translate/rotate to <c>surface.Canvas</c> beforehand to
+        /// zoom or position it. The render clears the canvas to the background first (the stock colour, or
+        /// transparent), exactly as <see cref="DrawPng"/> does.
+        /// </summary>
+        public void Draw(
+            SKSurface surface,
+            IEnumerable<ZplElementBase> elements,
+            double labelWidth = 101.6,
+            double labelHeight = 152.4,
+            int printDensityDpmm = 8)
+        {
+            LabelDrawing label = CreateLabelDrawing(elements, labelWidth, labelHeight, printDensityDpmm);
+            label.Render(surface.Canvas, BuildRenderSettings());
+            surface.Canvas.Flush();
+        }
+
+        /// <summary>
         /// Rasterise the label to a PNG (or the configured <see cref="DrawerOptions.RenderFormat"/>) byte
         /// array via an <c>SKSurface</c>. <paramref name="scale"/> is an integer supersample factor (≥ 1):
         /// 1 renders at the native dot grid (1 dot = 1 px), higher values render at <c>scale</c>× the pixel
