@@ -47,7 +47,7 @@ namespace BinaryKits.Zpl.Viewer.UnitTest
             Assert.AreEqual(1219, bitmap.Height);  // round(152.4mm * 8 dpmm = 1219.2)
 
             // Dump for visual inspection.
-            var outDir = Path.Combine(Path.GetTempPath(), "GeometryRenderTests");
+            var outDir = TestOutput.Root;
             Directory.CreateDirectory(outDir);
             File.WriteAllBytes(Path.Combine(outDir, "shapes-geometry.png"), png);
 
@@ -83,7 +83,7 @@ namespace BinaryKits.Zpl.Viewer.UnitTest
             Assert.AreEqual(SKColors.White, bitmap.GetPixel(200, 150), "reverse bar interior should be knocked out white");
             Assert.AreEqual(SKColors.Black, bitmap.GetPixel(80, 80), "square body should be black");
 
-            var outDir = Path.Combine(Path.GetTempPath(), "GeometryRenderTests");
+            var outDir = TestOutput.Root;
             Directory.CreateDirectory(outDir);
             File.WriteAllBytes(Path.Combine(outDir, "reverse-geometry.png"), png);
 
@@ -115,7 +115,7 @@ namespace BinaryKits.Zpl.Viewer.UnitTest
             Assert.IsNotNull(bitmap);
             Assert.AreEqual(813, bitmap.Width);
 
-            var outDir = Path.Combine(Path.GetTempPath(), "GeometryRenderTests");
+            var outDir = TestOutput.Root;
             Directory.CreateDirectory(outDir);
             File.WriteAllBytes(Path.Combine(outDir, "barcodes-geometry.png"), png);
 
@@ -146,7 +146,7 @@ namespace BinaryKits.Zpl.Viewer.UnitTest
             using var bitmap = SKBitmap.Decode(png);
             Assert.IsNotNull(bitmap);
 
-            var outDir = Path.Combine(Path.GetTempPath(), "GeometryRenderTests");
+            var outDir = TestOutput.Root;
             Directory.CreateDirectory(outDir);
             File.WriteAllBytes(Path.Combine(outDir, "text-geometry.png"), png);
 
@@ -172,7 +172,7 @@ namespace BinaryKits.Zpl.Viewer.UnitTest
             using var bitmap = SKBitmap.Decode(png);
             Assert.IsNotNull(bitmap);
 
-            var outDir = Path.Combine(Path.GetTempPath(), "GeometryRenderTests");
+            var outDir = TestOutput.Root;
             Directory.CreateDirectory(outDir);
             File.WriteAllBytes(Path.Combine(outDir, "maxicode-geometry.png"), png);
 
@@ -211,7 +211,7 @@ namespace BinaryKits.Zpl.Viewer.UnitTest
             StringAssert.Matches(leg, new System.Text.RegularExpressions.Regex("/Subtype\\s*/Image"),
                 "legacy PDF rasterises the barcode / reverse field");
 
-            var outDir = Path.Combine(Path.GetTempPath(), "GeometryRenderTests");
+            var outDir = TestOutput.Root;
             Directory.CreateDirectory(outDir);
             File.WriteAllBytes(Path.Combine(outDir, "label-geometry.pdf"), geomPdf);
             File.WriteAllBytes(Path.Combine(outDir, "label-legacy.pdf"), legacyPdf);
@@ -245,7 +245,7 @@ namespace BinaryKits.Zpl.Viewer.UnitTest
             Assert.AreEqual(l.GetPixel(220, 160), g.GetPixel(220, 160), "geometry vs legacy: ellipse centre");
             Assert.AreEqual(l.GetPixel(60, 60), g.GetPixel(60, 60), "geometry vs legacy: bar");
 
-            var outDir = Path.Combine(Path.GetTempPath(), "GeometryRenderTests");
+            var outDir = TestOutput.Root;
             Directory.CreateDirectory(outDir);
             File.WriteAllBytes(Path.Combine(outDir, "ellipse-reverse-geometry.png"), geomPng);
             File.WriteAllBytes(Path.Combine(outDir, "ellipse-reverse-legacy.png"), legacyPng);
@@ -278,7 +278,7 @@ namespace BinaryKits.Zpl.Viewer.UnitTest
             Assert.AreEqual(SKColors.Yellow, bmp.GetPixel(700, 1100), "background should be the stock colour");
             Assert.AreEqual(SKColors.Red, bmp.GetPixel(50, 385), "bar ink should be the ribbon colour");
 
-            var outDir = Path.Combine(Path.GetTempPath(), "GeometryRenderTests");
+            var outDir = TestOutput.Root;
             Directory.CreateDirectory(outDir);
             File.WriteAllBytes(Path.Combine(outDir, "colors-geometry.png"), png);
         }
@@ -315,7 +315,7 @@ namespace BinaryKits.Zpl.Viewer.UnitTest
             Assert.AreEqual(0, black, "no pure-black ink should remain when the ribbon is red");
             Assert.IsTrue(red > 0, "raster-graphic ink should be tinted to the ribbon colour");
 
-            var outDir = Path.Combine(Path.GetTempPath(), "GeometryRenderTests");
+            var outDir = TestOutput.Root;
             Directory.CreateDirectory(outDir);
             File.WriteAllBytes(Path.Combine(outDir, "image-red-ribbon.png"), png);
         }
@@ -354,7 +354,7 @@ namespace BinaryKits.Zpl.Viewer.UnitTest
             StringAssert.DoesNotMatch(pdfStr, new System.Text.RegularExpressions.Regex("/Subtype\\s*/Image"),
                 "transparent-stock PDF should be pure vector");
 
-            var outDir = Path.Combine(Path.GetTempPath(), "GeometryRenderTests");
+            var outDir = TestOutput.Root;
             Directory.CreateDirectory(outDir);
             File.WriteAllBytes(Path.Combine(outDir, "transparent.png"), png);
 
@@ -445,7 +445,7 @@ namespace BinaryKits.Zpl.Viewer.UnitTest
                 using var overCyan = new SKBitmap(transp.Width, transp.Height);
                 using (var c = new SKCanvas(overCyan)) { c.Clear(SKColors.Cyan); c.DrawBitmap(transp, 0, 0); }
                 using var img = SKImage.FromBitmap(overCyan);
-                var outDir = Path.Combine(Path.GetTempPath(), "GeometryRenderTests");
+                var outDir = TestOutput.Root;
                 Directory.CreateDirectory(outDir);
                 File.WriteAllBytes(Path.Combine(outDir, "example11-transparent-over-cyan.png"), img.Encode(SKEncodedImageFormat.Png, 100).ToArray());
             }

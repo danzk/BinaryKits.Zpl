@@ -77,13 +77,13 @@ namespace BinaryKits.Zpl.Viewer.UnitTest
 
             if (agreement < 0.90)
             {
-                var outDir = Path.Combine(Path.GetTempPath(), "GeometryRenderTests", "corpus");
+                var outDir = Path.Combine(TestOutput.Root, "corpus");
                 Directory.CreateDirectory(outDir);
                 File.WriteAllBytes(Path.Combine(outDir, name + ".geometry.png"), geomPng);
                 File.WriteAllBytes(Path.Combine(outDir, name + ".legacy.png"), legacyPng);
             }
 
-            Assert.IsTrue(agreement >= 0.90, $"{name}: ink agreement {agreement:P2} below 90% (diff PNGs written to temp)");
+            Assert.IsTrue(agreement >= 0.90, $"{name}: ink agreement {agreement:P2} below 90% (diff PNGs written to {Path.Combine(TestOutput.Root, "corpus")})");
         }
 
         private static double InkAgreement(SKBitmap a, SKBitmap b)
