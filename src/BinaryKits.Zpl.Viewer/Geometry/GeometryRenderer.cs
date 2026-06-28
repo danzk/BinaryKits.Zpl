@@ -194,35 +194,63 @@ namespace BinaryKits.Zpl.Viewer.Geometry
 
                 using (SKData data = stream.DetachAsData())
                 {
-                    return AddViewBox(data.ToArray(), label.Width, label.Height);
+                    return PostProcessSvg(data.ToArray(), label.Width, label.Height);
                 }
             }
         }
 
         /// <summary>
-        /// <see cref="SKSvgCanvas"/> writes <c>&lt;svg … width="W" height="H"&gt;</c> with no <c>viewBox</c>, so
-        /// the document has a fixed pixel size and won't scale to its container. Insert a <c>viewBox</c> spanning
-        /// the dot grid (keeping the px intrinsic size) so consumers can scale the SVG freely while preserving
-        /// the coordinate system and aspect ratio.
+        /// Fix up the raw SVG from <see cref="SKSvgCanvas"/>:
+        /// <list type="number">
+        ///   <item>Add a <c>viewBox</c> spanning the dot grid — Skia emits <c>width</c>/<c>height</c> only, so the
+        ///   document has a fixed pixel size and won't scale to its container; the viewBox lets consumers scale it
+        ///   freely while preserving the coordinate system and aspect ratio.</item>
+        ///   <item>Append a CSS generic fallback to every <c>&lt;text&gt;</c> <c>font-family</c>. Skia writes only
+        ///   the single resolved family (e.g. <c>TeX Gyre Heros Cn</c>), with no fallback chain, so a viewer that
+        ///   lacks that exact font drops to its default <i>serif</i>. We append <c>sans-serif</c> (or
+        ///   <c>monospace</c> for fixed-pitch families) so ZPL text always falls back to the right kind of face.</item>
+        /// </list>
         /// </summary>
-        private static byte[] AddViewBox(byte[] svgBytes, int width, int height)
+        private static byte[] PostProcessSvg(byte[] svgBytes, int width, int height)
         {
             string svg = System.Text.Encoding.UTF8.GetString(svgBytes);
 
             int open = svg.IndexOf("<svg", StringComparison.Ordinal);
-            if (open < 0)
+            if (open >= 0)
             {
-                return svgBytes;
+                int close = svg.IndexOf('>', open);
+                if (close >= 0 && svg.IndexOf("viewBox", open, close - open, StringComparison.Ordinal) < 0)
+                {
+                    svg = svg.Insert(close, $" viewBox=\"0 0 {width} {height}\"");
+                }
             }
 
-            int close = svg.IndexOf('>', open);
-            if (close < 0 || svg.IndexOf("viewBox", open, close - open, StringComparison.Ordinal) >= 0)
-            {
-                return svgBytes;   // malformed, or a future Skia already emits a viewBox — leave it alone
-            }
-
-            svg = svg.Insert(close, $" viewBox=\"0 0 {width} {height}\"");
+            svg = System.Text.RegularExpressions.Regex.Replace(svg, "font-family=\"([^\"]*)\"", AppendGenericFontFallback);
             return System.Text.Encoding.UTF8.GetBytes(svg);
+        }
+
+        /// <summary>Append a CSS generic family (and a couple of common named faces) to an SVG <c>font-family</c>
+        /// value, unless it already ends in a generic. Fixed-pitch families get <c>monospace</c>; everything else
+        /// gets <c>sans-serif</c> (ZPL's built-in fonts are a Helvetica-like proportional face and a monospace face,
+        /// never serif).</summary>
+        private static string AppendGenericFontFallback(System.Text.RegularExpressions.Match match)
+        {
+            string family = match.Groups[1].Value;
+            string trimmed = family.TrimEnd();
+            if (trimmed.EndsWith("serif", StringComparison.OrdinalIgnoreCase) ||
+                trimmed.EndsWith("monospace", StringComparison.OrdinalIgnoreCase) ||
+                trimmed.EndsWith("cursive", StringComparison.OrdinalIgnoreCase) ||
+                trimmed.EndsWith("fantasy", StringComparison.OrdinalIgnoreCase))
+            {
+                return match.Value;   // already ends in a CSS generic — leave it
+            }
+
+            bool monospace = family.IndexOf("mono", StringComparison.OrdinalIgnoreCase) >= 0
+                || family.IndexOf("console", StringComparison.OrdinalIgnoreCase) >= 0
+                || family.IndexOf("courier", StringComparison.OrdinalIgnoreCase) >= 0;
+
+            string fallback = monospace ? ", 'Courier New', monospace" : ", Helvetica, Arial, sans-serif";
+            return $"font-family=\"{family}{fallback}\"";
         }
 
         /// <summary>Render both outputs from one built label: <c>[0]</c> PNG, <c>[1]</c> vector PDF.</summary>
@@ -299,26 +327,40 @@ namespace BinaryKits.Zpl.Viewer.Geometry
 
                     SKPath black = context.TakeBlack();
                     SKPath white = context.TakeWhite();
+                    IReadOnlyList<TextRun> texts = context.TakeText();
 
                     if (drawer.IsReverseDraw(element))
                     {
-                        // ^FR: XOR the field against the visible black under it. A white-drawn reverse is
-                        // normalised to black before the XOR (Skia's InvertDrawWhite), so white vs black
-                        // reverse have the identical effect here — both arrive via `black`.
-                        if (black != null)
+                        // ^FR: XOR the field against the visible black under it. The field geometry is the
+                        // element's whole ink — its black geometry plus any text outlines. A white-drawn reverse
+                        // is normalised to black before the XOR (Skia's InvertDrawWhite), so white vs black
+                        // reverse have the identical effect here.
+                        SKPath field = CombineReverseField(black, texts);
+                        if (field != null)
                         {
                             blackOps = blackOps ?? BuildBlackOps(ops);
 
-                            SKRect fieldBounds = black.Bounds;
-                            SKPath localBlack = ComposeOverlapping(blackOps, fieldBounds);
+                            SKPath localBlack = ComposeOverlapping(blackOps, field.Bounds);
                             if (localBlack == null)
                             {
-                                ops.Add(LabelOp.Black(black));     // nothing underneath: reverse is all black
+                                // Nothing underneath: the reverse is just black (XOR over white), so it causes no
+                                // knockout — keep text as real text, and emit any non-text geometry plainly.
+                                if (black != null)
+                                {
+                                    ops.Add(LabelOp.Black(black));
+                                }
+
+                                foreach (TextRun t in texts)
+                                {
+                                    ops.Add(LabelOp.TextOp(t));
+                                }
                             }
                             else
                             {
-                                SKPath erase = black.Op(localBlack, SKPathOp.Intersect);  // erase where field overlaps black
-                                SKPath add = black.Op(localBlack, SKPathOp.Difference);   // add black where it doesn't
+                                // Real knockout: erase where the field overlaps black, add black where it doesn't.
+                                // Text caught here is rendered as geometry (it is genuinely knocked out).
+                                SKPath erase = field.Op(localBlack, SKPathOp.Intersect);
+                                SKPath add = field.Op(localBlack, SKPathOp.Difference);
                                 if (erase != null && !erase.IsEmpty)
                                 {
                                     ops.Add(LabelOp.WhiteFill(erase));
@@ -330,7 +372,7 @@ namespace BinaryKits.Zpl.Viewer.Geometry
                                 }
                             }
 
-                            blackOps.Add(new BlackOp(black, SKPathOp.Xor));
+                            blackOps.Add(new BlackOp(field, SKPathOp.Xor));
                         }
                     }
                     else
@@ -345,6 +387,15 @@ namespace BinaryKits.Zpl.Viewer.Geometry
                         {
                             ops.Add(LabelOp.WhiteFill(white));
                             blackOps?.Add(new BlackOp(white, SKPathOp.Difference));
+                        }
+
+                        // Text is ink (black) but kept as a text op so it can be drawn as real text; its outline
+                        // still joins the black region (lazily) so a later reverse can knock it out.
+                        foreach (TextRun t in texts)
+                        {
+                            LabelOp textOp = LabelOp.TextOp(t);
+                            ops.Add(textOp);
+                            blackOps?.Add(new BlackOp(textOp, SKPathOp.Union));
                         }
                     }
 
@@ -366,19 +417,33 @@ namespace BinaryKits.Zpl.Viewer.Geometry
         /// black region, and its bounds (cached so the reverse path can bounding-box-filter cheaply).</summary>
         private readonly struct BlackOp
         {
-            public readonly SKPath Geom;
+            private readonly SKPath _geom;   // eager: a reverse field, or a geometry op
+            private readonly TextRun _run;   // lazy: a text op's outline, built only if it overlaps a reverse
             public readonly SKPathOp Mode;   // Union (black), Difference (white), Xor (reverse)
             public readonly SKRect Bounds;
 
             public BlackOp(SKPath geom, SKPathOp mode)
             {
-                this.Geom = geom;
+                this._geom = geom;
+                this._run = null;
                 this.Mode = mode;
                 this.Bounds = geom.Bounds;
             }
+
+            public BlackOp(LabelOp op, SKPathOp mode)
+            {
+                this.Mode = mode;
+                this.Bounds = op.Bounds;       // cheap — never builds a text outline
+                this._run = op.IsText ? op.Text : null;
+                this._geom = op.IsText ? null : op.Fill;
+            }
+
+            /// <summary>The geometry; a text op's outline materialises here, only for the few that a reverse overlaps.</summary>
+            public SKPath Geom => this._geom ?? this._run.GetPath();
         }
 
-        /// <summary>Seed the black-op list from the fill ops emitted so far (black = Union, white = Difference).</summary>
+        /// <summary>Seed the black-op list from the fill ops emitted so far (black = Union, white = Difference).
+        /// Uses each op's cheap bounds, so text outlines are not built unless a reverse actually overlaps them.</summary>
         private static List<BlackOp> BuildBlackOps(List<LabelOp> ops)
         {
             var list = new List<BlackOp>(ops.Count);
@@ -386,11 +451,34 @@ namespace BinaryKits.Zpl.Viewer.Geometry
             {
                 if (!op.IsImage)
                 {
-                    list.Add(new BlackOp(op.Fill, op.White ? SKPathOp.Difference : SKPathOp.Union));
+                    list.Add(new BlackOp(op, op.White ? SKPathOp.Difference : SKPathOp.Union));
                 }
             }
 
             return list;
+        }
+
+        /// <summary>The reverse field's geometry for the <c>^FR</c> XOR: the element's black geometry unioned with
+        /// any text outlines. Returns <paramref name="black"/> unchanged when there is no text.</summary>
+        private static SKPath CombineReverseField(SKPath black, IReadOnlyList<TextRun> texts)
+        {
+            if (texts.Count == 0)
+            {
+                return black;
+            }
+
+            var field = new SKPath { FillType = SKPathFillType.Winding };
+            if (black != null)
+            {
+                field.AddPath(black);
+            }
+
+            foreach (TextRun t in texts)
+            {
+                field.AddPath(t.GetPath());   // a reverse field's own text outline is genuinely needed
+            }
+
+            return field;
         }
 
         /// <summary>

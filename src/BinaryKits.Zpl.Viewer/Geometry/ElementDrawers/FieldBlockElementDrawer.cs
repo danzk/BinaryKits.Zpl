@@ -135,8 +135,7 @@ namespace BinaryKits.Zpl.Viewer.Geometry.ElementDrawers
                         break;
                 }
 
-                SKPath geometry = TextRenderer.BuildGeometryGlyphRun(skFont, textLine, scaleX, new SKPoint(x, y));
-                this.context.AddBlack(geometry);
+                this.context.AddText(new TextRun(textLine, typeface, fontSize, scaleX, new SKPoint(x, y)));
                 y += lineHeight;
             }
 

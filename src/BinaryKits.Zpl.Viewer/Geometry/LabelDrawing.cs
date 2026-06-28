@@ -101,8 +101,7 @@ namespace BinaryKits.Zpl.Viewer.Geometry
         /// </summary>
         private void DrawNetInk(SKCanvas canvas, SKPaint paint)
         {
-            var pieces = new List<SKPath>();        // op.Fill references (NOT owned)
-            var pieceBounds = new List<SKRect>();
+            var pieces = new List<LabelOp>();       // ink ops in document order
             var pieceKnockout = new List<SKPath>(); // owned accumulators, null until a knockout overlaps
 
             foreach (LabelOp op in _ops)
@@ -114,10 +113,12 @@ namespace BinaryKits.Zpl.Viewer.Geometry
 
                 if (op.White)
                 {
-                    SKRect whiteBounds = op.Fill.Bounds;
+                    SKRect whiteBounds = op.Bounds;
                     for (int i = 0; i < pieces.Count; i++)
                     {
-                        if (!Overlaps(pieceBounds[i], whiteBounds))
+                        // pieces[i].Bounds is the cheap (cached) measured bound — a label with no reverse never
+                        // reaches here, so it never measures or builds any text geometry.
+                        if (!Overlaps(pieces[i].Bounds, whiteBounds))
                         {
                             continue;
                         }
@@ -127,32 +128,41 @@ namespace BinaryKits.Zpl.Viewer.Geometry
                             pieceKnockout[i] = new SKPath { FillType = SKPathFillType.Winding };
                         }
 
-                        pieceKnockout[i].AddPath(op.Fill);
+                        pieceKnockout[i].AddPath(op.Fill);   // white ops are geometry — Fill is eager
                     }
                     // white over nothing: no overlapping piece, nothing to subtract (transparent there anyway)
                 }
                 else
                 {
-                    pieces.Add(op.Fill);
-                    pieceBounds.Add(op.Fill.Bounds);
+                    pieces.Add(op);
                     pieceKnockout.Add(null);
                 }
             }
 
             for (int i = 0; i < pieces.Count; i++)
             {
+                LabelOp op = pieces[i];
                 if (pieceKnockout[i] == null)
                 {
-                    if (!pieces[i].IsEmpty)
+                    // Untouched ink: real text via the glyph blitter (no outline built, stays selectable in
+                    // PDF/SVG), otherwise fill the geometry.
+                    if (op.IsText)
                     {
-                        canvas.DrawPath(pieces[i], paint);   // op.Fill, drawn straight (not owned, not disposed)
+                        DrawTextRun(canvas, op.Text, paint);
+                    }
+                    else if (!op.Fill.IsEmpty)
+                    {
+                        canvas.DrawPath(op.Fill, paint);
                     }
                 }
                 else
                 {
-                    using (SKPath diff = pieces[i].Op(pieceKnockout[i], SKPathOp.Difference))
+                    // Knocked out: a reverse field actually cut it, so materialise the outline (op.Fill builds a
+                    // text run's geometry on demand) and difference it.
+                    SKPath fill = op.Fill;
+                    using (SKPath diff = fill.Op(pieceKnockout[i], SKPathOp.Difference))
                     {
-                        SKPath inked = diff ?? pieces[i];    // null Op result → fall back to the un-cut piece
+                        SKPath inked = diff ?? fill;    // null Op result → fall back to the un-cut piece
                         if (!inked.IsEmpty)
                         {
                             canvas.DrawPath(inked, paint);
@@ -160,6 +170,27 @@ namespace BinaryKits.Zpl.Viewer.Geometry
                     }
 
                     pieceKnockout[i].Dispose();
+                }
+            }
+        }
+
+        /// <summary>Paint a text run with the glyph blitter — light antialiasing on a raster surface, real
+        /// embedded-font text in a PDF and a <c>&lt;text&gt;</c> element in an SVG.</summary>
+        private static void DrawTextRun(SKCanvas canvas, TextRun run, SKPaint paint)
+        {
+            using (var font = new SKFont(run.Typeface, run.Size) { ScaleX = run.ScaleX })
+            {
+                if (run.Transform.IsIdentity)
+                {
+                    canvas.DrawText(run.Text, run.Baseline.X, run.Baseline.Y, font, paint);
+                }
+                else
+                {
+                    canvas.Save();
+                    SKMatrix m = run.Transform;
+                    canvas.Concat(in m);
+                    canvas.DrawText(run.Text, run.Baseline.X, run.Baseline.Y, font, paint);
+                    canvas.Restore();
                 }
             }
         }

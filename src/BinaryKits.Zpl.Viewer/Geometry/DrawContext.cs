@@ -16,6 +16,7 @@ namespace BinaryKits.Zpl.Viewer.Geometry
         private readonly List<SKPath> _black = new List<SKPath>();
         private readonly List<SKPath> _white = new List<SKPath>();
         private readonly List<ImageOp> _images = new List<ImageOp>();
+        private readonly List<TextRun> _text = new List<TextRun>();
 
         private readonly Stack<SKMatrix> _transformStack = new Stack<SKMatrix>();
         private SKMatrix _current = SKMatrix.CreateIdentity();
@@ -71,6 +72,22 @@ namespace BinaryKits.Zpl.Viewer.Geometry
             _images.Add(new ImageOp(image, destination, _current));
         }
 
+        /// <summary>
+        /// Add an ink text run. The run carries what <c>DrawText</c> needs so the text stays real text in a
+        /// PDF/SVG when it is not knocked out; its outline geometry is built on demand (only if a reverse field
+        /// actually knocks it out). The current transform is recorded on the run.
+        /// </summary>
+        public void AddText(TextRun run)
+        {
+            if (run == null || string.IsNullOrEmpty(run.Text))
+            {
+                return;
+            }
+
+            run.Transform = _current;
+            _text.Add(run);
+        }
+
         private SKPath ApplyCurrent(SKPath path)
         {
             if (_current.IsIdentity)
@@ -102,6 +119,19 @@ namespace BinaryKits.Zpl.Viewer.Geometry
 
             var copy = _images.ToArray();
             _images.Clear();
+            return copy;
+        }
+
+        /// <summary>Return and clear the current element's text runs (their outlines build on demand).</summary>
+        public IReadOnlyList<TextRun> TakeText()
+        {
+            if (_text.Count == 0)
+            {
+                return System.Array.Empty<TextRun>();
+            }
+
+            var copy = _text.ToArray();
+            _text.Clear();
             return copy;
         }
 

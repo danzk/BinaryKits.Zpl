@@ -162,8 +162,7 @@ namespace BinaryKits.Zpl.Viewer.Geometry.ElementDrawers
             float margin = Math.Max((TextRenderer.LineSpacing(font) - textBounds.Height) / 2, MIN_LABEL_MARGIN);
             float baselineY = printAboveCode ? yy - margin : yy + barcodeHeight + textBounds.Height + margin;
 
-            SKPath g = TextRenderer.BuildGeometryGlyphRun(font, interpretation, 1f, new SKPoint(penX, baselineY));
-            this.context.AddBlack(g);
+            this.context.AddText(new TextRun(interpretation, font.Typeface, font.Size, 1f, new SKPoint(penX, baselineY)));
 
             if (hasRot) this.context.Pop();
         }
@@ -209,8 +208,7 @@ namespace BinaryKits.Zpl.Viewer.Geometry.ElementDrawers
                 string digit = interpretation[i].ToString();
                 SKRect digitBounds = TextRenderer.MeasureTightBounds(font, digit, 1f);
                 float penX = cx - (spacing + digitBounds.Width) / 2 - moduleWidth;
-                SKPath g = TextRenderer.BuildGeometryGlyphRun(font, digit, 1f, new SKPoint(penX, baselineY));
-                this.context.AddBlack(g);
+                this.context.AddText(new TextRun(digit, font.Typeface, font.Size, 1f, new SKPoint(penX, baselineY)));
 
                 cx += spacing + extraModulesAfter(i) * moduleWidth;
             }
